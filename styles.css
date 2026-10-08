@@ -299,7 +299,8 @@ h1, h2, h3 { margin: 0; font-weight: 300; }
 
 /* ---------- Responsive ---------- */
 @media (max-width: 900px) {
-  .nav__links { display: none; }
+  .nav { flex-wrap: wrap; row-gap: 16px; }
+  .nav__links { order: 3; width: 100%; gap: 20px; font-size: 13px; overflow-x: auto; padding-bottom: 4px; border-top: 1px solid rgba(216,203,184,.25); padding-top: 14px; }
   .split { grid-template-columns: 1fr; }
   .cols { grid-template-columns: 1fr; }
   .steps { grid-template-columns: 1fr; }
