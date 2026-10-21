@@ -23,6 +23,7 @@ local Remotes = require(Shared.Remotes)
 
 local UIKit = require(script.Parent.Parent.UIKit)
 local Notifications = require(script.Parent.Parent.Notifications)
+local RobuxPrices = require(script.Parent.Parent.RobuxPrices)
 local PanelBase = require(script.Parent.PanelBase)
 
 local SkinsPanel = {}
@@ -85,6 +86,7 @@ function SkinsPanel.create(screenGui: ScreenGui)
 	local player = Players.LocalPlayer
 	local lastState = nil
 	local buttons: { [string]: TextButton } = {}
+	local robuxPrices: { [string]: number } = {}
 
 	-- Que se passe-t-il quand on clique sur le bouton d'un skin ?
 	local function onSkinClicked(skin)
@@ -108,6 +110,13 @@ function SkinsPanel.create(screenGui: ScreenGui)
 	end
 
 	for order, skin in Config.Skins do
+		if skin.Unlock.Type == "Robux" then
+			robuxPrices[skin.Id] = skin.Unlock.RobuxPrice
+			RobuxPrices.get(skin.Unlock.ProductId, Enum.InfoType.Product, skin.Unlock.RobuxPrice, function(price)
+				robuxPrices[skin.Id] = price
+			end)
+		end
+
 		local card = UIKit.create("Frame", {
 			Name = skin.Id,
 			BackgroundColor3 = UIKit.Colors.Row,
@@ -158,7 +167,7 @@ function SkinsPanel.create(screenGui: ScreenGui)
 				text = Format.number(unlock.Price) .. " 💰"
 				color = if state.Coins >= unlock.Price then UIKit.Colors.Success else UIKit.Colors.Disabled
 			elseif unlock.Type == "Robux" then
-				text, color = `R$ {unlock.RobuxPrice}`, UIKit.Colors.Store
+				text, color = `R$ {robuxPrices[skin.Id]}`, UIKit.Colors.Store
 			else
 				text, color = "👑 VIP", UIKit.Colors.Coins
 			end

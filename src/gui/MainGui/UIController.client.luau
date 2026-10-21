@@ -69,6 +69,7 @@ addPanel("Shop", "ShopPanel", "🍔", "Boutique", UIKit.Colors.Shop)
 addPanel("Upgrades", "UpgradesPanel", "⚡", "Améliorer", UIKit.Colors.Upgrades)
 addPanel("Rebirth", "RebirthPanel", "🔄", "Renaître", UIKit.Colors.Rebirth)
 addPanel("Skins", "SkinsPanel", "🎨", "Skins", UIKit.Colors.Skins)
+addPanel("Store", "StorePanel", "💎", "Robux", UIKit.Colors.Store)
 
 ----------------------------------------------------------------------
 -- Mises à jour envoyées par le serveur

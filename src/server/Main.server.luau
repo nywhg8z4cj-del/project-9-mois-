@@ -32,6 +32,7 @@ local SERVICE_ORDER = {
 	"DailyRewardService", -- le cadeau quotidien
 	"CandyRainService", -- la pluie de bonbons
 	"LeaderboardService", -- le panneau du top 10
+	"MonetizationService", -- les gamepass et achats Robux
 	"PlayerDataService", -- en DERNIER : il charge les joueurs et prévient les autres services
 }
 

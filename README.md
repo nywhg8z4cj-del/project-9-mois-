@@ -192,3 +192,14 @@ Pour tester à plusieurs : onglet *Test* > *Clients and Servers* > choisis 2 jou
 - Interface : `EventBanner` affiche l'annonce et le compte à rebours de la pluie.
 
 **Tester :** *Play*. Une notification dorée « 🎁 Cadeau du jour » apparaît (une seule fois par jour : pour la revoir, utilise un autre compte ou attends demain). Dans Studio, la pluie de bonbons commence après 30 secondes (`StudioFirstEventDelay`) : cours sur la place centrale et touche les bonbons. Le panneau du classement est au bord de la place.
+
+### Étape 7 — Monétisation Robux ✅
+- `MonetizationService` (serveur) :
+  - **Gamepass** « VIP » (pièces x2, skin Doré, tag [VIP] dans le chat, 👑 au-dessus du monstre) et « Auto-nourrisseur turbo » (2x plus rapide, actif même sans l'amélioration). Vérifiés à chaque connexion (`UserOwnsGamePassAsync`) et dès l'achat (`PromptGamePassPurchaseFinished`).
+  - **Developer Products** : 3 packs de pièces (la quantité grandit avec tes revenus) et 2 skins Robux. `ProcessReceipt` est fiable : chaque achat est noté (`PurchaseHistory`) pour ne jamais être donné deux fois, et la sauvegarde est faite **avant** de répondre `PurchaseGranted`.
+- Pas de caisse mystère : on sait toujours exactement ce qu'on achète. Les avantages restent raisonnables (pas de pay-to-win abusif).
+- Interface : `StorePanel` (💎 **Robux**), `RobuxPrices` (lit le vrai prix sur Roblox), `ChatTags.client.luau` (tag [VIP] doré).
+
+> ⚠️ Les IDs dans `Config.Monetization` et `Config.Skins` sont des **exemples**. Le commentaire en haut de la section Monétisation de `Config.luau` explique où créer tes gamepass/produits et copier leurs vrais IDs.
+
+**Tester :** après avoir mis tes vrais IDs, *Play*, ouvre 💎 **Robux** et clique sur un pack. Dans Studio, l'achat est un **test gratuit** (aucun Robux n'est dépensé). Tu dois recevoir les pièces et voir `[Robux] TonPseudo a acheté le produit ...` dans *Output*. Avec les IDs d'exemple, Roblox affiche une erreur « objet introuvable » : c'est normal.

@@ -46,6 +46,18 @@ local function updateSizeLabel(model: Model, size: number)
 	end
 end
 
+-- Met à jour le nom au-dessus du monstre (avec une couronne 👑 pour les VIP)
+function MonsterService.refreshNameLabel(player: Player)
+	local model = monsters[player]
+	local body = model and model:FindFirstChild("Corps")
+	local billboard = body and body:FindFirstChild("InfoMonstre")
+	local label = billboard and billboard:FindFirstChild("Nom") :: TextLabel?
+	if label then
+		local crown = if PlayerDataService.getPasses(player).VIP then "👑 " else ""
+		label.Text = crown .. "Monstre de " .. player.DisplayName
+	end
+end
+
 -- Crée (ou recrée) le monstre du joueur, avec son skin actuel
 function MonsterService.spawnMonster(player: Player)
 	local data = PlayerDataService.getData(player)
@@ -77,6 +89,7 @@ function MonsterService.spawnMonster(player: Player)
 
 	model.Parent = monstersFolder
 	monsters[player] = model
+	MonsterService.refreshNameLabel(player)
 end
 
 -- Fait grandir le monstre de « amount ».
