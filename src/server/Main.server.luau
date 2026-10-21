@@ -26,6 +26,7 @@ local SERVICE_ORDER = {
 	"PlotService", -- les parcelles (avant les monstres !)
 	"MonsterService", -- les monstres
 	"IncomeService", -- les revenus et l'auto-nourrisseur
+	"ShopService", -- la boutique de nourriture et les améliorations
 	"PlayerDataService", -- en DERNIER : il charge les joueurs et prévient les autres services
 }
 

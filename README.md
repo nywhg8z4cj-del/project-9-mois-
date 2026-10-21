@@ -168,3 +168,11 @@ Pour tester à plusieurs : onglet *Test* > *Clients and Servers* > choisis 2 jou
 > ⚠️ **Rappel :** active **Enable Studio Access to API Services** (*Home > Game Settings > Security*) après avoir publié le jeu, sinon rien n'est sauvegardé dans Studio.
 
 **Tester :** *Play*, fais grandir ton monstre, note ta taille et tes pièces, puis *Stop*. Dans *Output* : `[Sauvegarde] TonPseudo sauvegardé ✔`. Relance *Play* : tu retrouves ta taille et tes pièces (`Données de TonPseudo chargées ✔`).
+
+### Étape 4 — Boutique + améliorations ✅
+- `ShopService` (serveur) reçoit les demandes `BuyFood` et `BuyUpgrade`, vérifie que l'objet existe, que le joueur a assez de pièces et que le niveau max n'est pas atteint, puis fait l'achat.
+- 6 aliments : Pomme, Burger, Pizza, Gâteau géant, Météorite en sucre, Planète en gelée (`Config.Foods`).
+- 3 améliorations permanentes (`Config.Upgrades`) : **Grosse cuillère** (+1 taille par clic par niveau), **Estomac élastique** (revenus x1.5 par niveau), **Auto-nourrisseur** (repas automatique toutes les X secondes).
+- Interface : `PanelBase` (modèle de fenêtre commun), `ShopPanel` et `UpgradesPanel`. Les boutons sont verts si tu peux payer, gris sinon.
+
+**Tester :** mets `Config.Debug.StudioStartingCoins = 100000`, *Play*, clique sur 🍔 **Boutique** à gauche et achète une Pizza : le monstre grossit d'un coup, une notification verte s'affiche. Ouvre ⚡ **Améliorer**, achète l'Auto-nourrisseur : le monstre mange tout seul toutes les 5 s. Remets `StudioStartingCoins = 0` et essaie d'acheter : notification rouge « Pas assez de pièces ».
