@@ -21,6 +21,7 @@ local STYLES = {
 	event = { Color = Color3.fromRGB(190, 90, 255), Sound = "Success" },
 	reward = { Color = Color3.fromRGB(255, 170, 30), Sound = "Success" },
 	candy = { Color = Color3.fromRGB(255, 100, 190), Sound = "Candy" },
+	rebirth = { Color = Color3.fromRGB(150, 90, 255), Sound = "Rebirth" },
 }
 
 local container: Frame
@@ -57,7 +58,7 @@ local function removeToast(toast: CanvasGroup)
 	end)
 end
 
--- Affiche une notification. style = "info", "success", "error", "event", "reward" ou "candy"
+-- Affiche une notification. style = "info", "success", "error", "event", "reward", "candy" ou "rebirth"
 function Notifications.show(message: string, style: string?, duration: number?)
 	if not container then
 		return

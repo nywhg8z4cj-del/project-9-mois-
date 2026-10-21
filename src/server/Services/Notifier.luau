@@ -4,7 +4,7 @@
 	Exemple : Notifier.send(player, "Achat réussi !", "success")
 
 	Styles possibles (couleurs différentes côté client) :
-	  "info", "success", "error", "event", "reward", "candy"
+	  "info", "success", "error", "event", "reward", "candy", "rebirth"
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")

@@ -27,6 +27,8 @@ local SERVICE_ORDER = {
 	"MonsterService", -- les monstres
 	"IncomeService", -- les revenus et l'auto-nourrisseur
 	"ShopService", -- la boutique de nourriture et les améliorations
+	"SkinService", -- les skins
+	"RebirthService", -- la renaissance
 	"PlayerDataService", -- en DERNIER : il charge les joueurs et prévient les autres services
 }
 

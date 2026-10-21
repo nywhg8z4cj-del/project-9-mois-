@@ -65,6 +65,8 @@ end
 
 addPanel("Shop", "ShopPanel", "🍔", "Boutique", UIKit.Colors.Shop)
 addPanel("Upgrades", "UpgradesPanel", "⚡", "Améliorer", UIKit.Colors.Upgrades)
+addPanel("Rebirth", "RebirthPanel", "🔄", "Renaître", UIKit.Colors.Rebirth)
+addPanel("Skins", "SkinsPanel", "🎨", "Skins", UIKit.Colors.Skins)
 
 ----------------------------------------------------------------------
 -- Mises à jour envoyées par le serveur
@@ -78,6 +80,8 @@ local function onStateUpdate(state)
 	for _, panel in panels do
 		panel.update(state)
 	end
+	-- Pastille « ! » sur le bouton Renaître quand c'est possible
+	hud.setBadge("Rebirth", state.Size >= state.RebirthRequirement)
 end
 
 Remotes.event("StateUpdate").OnClientEvent:Connect(onStateUpdate)

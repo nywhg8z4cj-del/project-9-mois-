@@ -176,3 +176,11 @@ Pour tester à plusieurs : onglet *Test* > *Clients and Servers* > choisis 2 jou
 - Interface : `PanelBase` (modèle de fenêtre commun), `ShopPanel` et `UpgradesPanel`. Les boutons sont verts si tu peux payer, gris sinon.
 
 **Tester :** mets `Config.Debug.StudioStartingCoins = 100000`, *Play*, clique sur 🍔 **Boutique** à gauche et achète une Pizza : le monstre grossit d'un coup, une notification verte s'affiche. Ouvre ⚡ **Améliorer**, achète l'Auto-nourrisseur : le monstre mange tout seul toutes les 5 s. Remets `StudioStartingCoins = 0` et essaie d'acheter : notification rouge « Pas assez de pièces ».
+
+### Étape 5 — Renaissance + skins ✅
+- `RebirthService` : à partir de la taille requise (`Config.Rebirth`), le joueur peut renaître. Il repart à la taille 1 et 0 pièce, mais gagne +1 renaissance (multiplicateur de revenus permanent) et, selon le nombre de renaissances, un nouveau skin équipé automatiquement.
+- `SkinService` : équiper un skin possédé, acheter un skin en pièces. Le serveur vérifie toujours que le joueur possède le skin.
+- 10 skins dans `Config.Skins` (couleur, matière, accessoire) : gratuits, débloqués par renaissance, en pièces, en Robux ou VIP.
+- Interface : `RebirthPanel` (barre de progression, confirmation en 2 clics) et `SkinsPanel` (cartes avec un mini-monstre). Une pastille rouge **!** apparaît sur 🔄 quand la renaissance est possible.
+
+**Tester :** mets temporairement `Config.Rebirth.BaseRequiredSize = 10`, *Play*, clique 10 fois sur ton monstre, ouvre 🔄 **Renaître** et clique 2 fois sur le bouton : le monstre rétrécit, devient rose avec des antennes (skin « Bonbon rose »), tes pièces repartent à 0 et le multiplicateur passe à x1.5. Ouvre 🎨 **Skins** pour remettre le Classique. N'oublie pas de remettre `BaseRequiredSize = 1_000` ensuite.
