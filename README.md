@@ -147,3 +147,14 @@ dans Studio sans attendre (aucun effet dans le jeu publié).
 **Tester :** lance `rojo serve`, connecte le plugin, clique sur **Play**. Dans *Output*, tu dois voir :
 `✅ [Grow a Giant] Serveur démarré !`, `✅ [Grow a Giant] Client démarré !` et
 `✅ [Grow a Giant] Interface chargée pour TonPseudo`.
+
+### Étape 2 — Parcelles + monstre + nourrir + revenus ✅
+- `WorldBuilder` construit la carte : la place centrale, 6 parcelles en cercle, des chemins, des sucettes et des arbres.
+- `PlotService` donne une parcelle libre à chaque joueur, écrit son nom sur le panneau (BillboardGui) et le téléporte chez lui.
+- `MonsterBuilder` fabrique le monstre en Parts (corps rond, pieds, yeux, bouche) ; `MonsterService` le pose sur la parcelle.
+- Cliquer sur **son** monstre (ou le bouton **NOURRIR**, ou la touche **F**) le fait grandir de +1, avec un cooldown anti-spam vérifié par le serveur.
+- `MonsterAnimator` (client) anime l'agrandissement (TweenService), le rebond, les particules, le son et le « +1 » qui s'envole. Le monstre reste posé au sol et s'arrête de grossir visuellement à `Config.Monster.MaxDiameter`.
+- `IncomeService` donne des pièces chaque seconde selon la taille. Les pièces et la taille sont dans le leaderstats et en haut de l'écran.
+
+**Tester :** *Play*. Tu apparais sur ta parcelle devant ton monstre. Clique dessus plusieurs fois : il grandit, rebondit et le compteur de taille monte. Regarde les pièces augmenter toutes les secondes (en haut et dans le tableau en haut à droite). Dans *Output* tu dois voir `[Parcelles] TonPseudo reçoit la parcelle 1`.
+Pour tester à plusieurs : onglet *Test* > *Clients and Servers* > choisis 2 joueurs > *Start*.

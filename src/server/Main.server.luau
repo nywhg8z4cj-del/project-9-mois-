@@ -1,19 +1,38 @@
 --[[
 	Main.server.luau  —  le point de départ du SERVEUR
 	==================================================
-	Ce script se lance tout seul quand le serveur démarre.
-	Pour l'instant (étape 1), il vérifie juste que tout est bien branché.
+	Ce script se lance tout seul quand le serveur démarre. Il :
+	  1. crée les RemoteEvents (Remotes.init) ;
+	  2. construit la carte (WorldBuilder) ;
+	  3. démarre chaque « service » (un module = une fonctionnalité du jeu).
+
+	⚠️ L'ORDRE compte : par exemple les parcelles doivent être prêtes
+	avant de poser les monstres dessus.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Shared = ReplicatedStorage:WaitForChild("Shared")
-local Config = require(Shared.Config)
-local Remotes = require(Shared.Remotes)
+local Remotes = require(ReplicatedStorage:WaitForChild("Shared").Remotes)
+local Services = script.Parent:WaitForChild("Services")
 
--- On crée tous les RemoteEvents / RemoteFunctions
+-- 1. Les « téléphones » client ↔ serveur
 Remotes.init()
 
-print("✅ [Grow a Giant] Serveur démarré !")
-print("   Nombre d'aliments dans la boutique :", #Config.Foods)
-print("   Nombre de skins :", #Config.Skins)
+-- 2. La carte
+require(Services.WorldBuilder).build()
+
+-- 3. Les services, dans l'ordre
+local SERVICE_ORDER = {
+	"PlotService", -- les parcelles (avant les monstres !)
+	"MonsterService", -- les monstres
+	"IncomeService", -- les revenus et l'auto-nourrisseur
+	"PlayerDataService", -- en DERNIER : il charge les joueurs et prévient les autres services
+}
+
+for _, serviceName in SERVICE_ORDER do
+	local service = require(Services:WaitForChild(serviceName))
+	service.start()
+	print("   ✔ " .. serviceName .. " démarré")
+end
+
+print("✅ [Grow a Giant] Serveur prêt !")

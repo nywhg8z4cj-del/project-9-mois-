@@ -73,11 +73,21 @@ Config.Monster = {
 	GrowTweenTime = 0.35, -- durée de l'animation quand il grandit (secondes)
 	BounceScale = 1.12, -- « rebond » quand il mange (1.12 = +12 %)
 	BounceTime = 0.1, -- durée d'une moitié de rebond (secondes)
+}
 
-	-- Sons (IDs Roblox). Tu peux les remplacer par des sons de la Creator Store
-	-- (Studio > Toolbox > Audio). Copie l'ID et écris-le sous la forme "rbxassetid://123456".
-	BiteSoundId = "rbxasset://sounds/clickfast.wav",
-	BiteSoundPitch = 0.7,
+----------------------------------------------------------------------
+-- 🔊 SONS
+----------------------------------------------------------------------
+-- Ce sont des sons fournis avec Roblox Studio. Pour en mettre d'autres :
+-- Studio > Toolbox > Audio, choisis un son, clic droit > « Copy Asset ID »,
+-- puis écris-le ici sous la forme "rbxassetid://123456789".
+Config.Sounds = {
+	Bite = { Id = "rbxasset://sounds/clickfast.wav", Volume = 0.8, Pitch = 0.6 }, -- bouchée
+	Click = { Id = "rbxasset://sounds/clickfast.wav", Volume = 0.4, Pitch = 1.2 }, -- bouton de l'interface
+	Success = { Id = "rbxasset://sounds/electronicpingshort.wav", Volume = 0.5, Pitch = 1 }, -- achat réussi
+	Error = { Id = "rbxasset://sounds/electronicpingshort.wav", Volume = 0.4, Pitch = 0.5 }, -- pas assez de pièces
+	Candy = { Id = "rbxasset://sounds/electronicpingshort.wav", Volume = 0.4, Pitch = 1.6 }, -- bonbon ramassé
+	Rebirth = { Id = "rbxasset://sounds/victory.wav", Volume = 0.6, Pitch = 1 }, -- renaissance
 }
 
 ----------------------------------------------------------------------
