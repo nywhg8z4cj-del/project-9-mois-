@@ -29,6 +29,9 @@ local SERVICE_ORDER = {
 	"ShopService", -- la boutique de nourriture et les améliorations
 	"SkinService", -- les skins
 	"RebirthService", -- la renaissance
+	"DailyRewardService", -- le cadeau quotidien
+	"CandyRainService", -- la pluie de bonbons
+	"LeaderboardService", -- le panneau du top 10
 	"PlayerDataService", -- en DERNIER : il charge les joueurs et prévient les autres services
 }
 

@@ -13,15 +13,15 @@ local Notifications = {}
 
 local MAX_VISIBLE = 4 -- au-delà, les plus vieilles disparaissent
 
--- Couleur et son de chaque style
+-- Couleur, son et durée (secondes) de chaque style
 local STYLES = {
-	info = { Color = Color3.fromRGB(70, 150, 255), Sound = nil },
-	success = { Color = Color3.fromRGB(70, 195, 95), Sound = "Success" },
-	error = { Color = Color3.fromRGB(230, 75, 75), Sound = "Error" },
-	event = { Color = Color3.fromRGB(190, 90, 255), Sound = "Success" },
-	reward = { Color = Color3.fromRGB(255, 170, 30), Sound = "Success" },
-	candy = { Color = Color3.fromRGB(255, 100, 190), Sound = "Candy" },
-	rebirth = { Color = Color3.fromRGB(150, 90, 255), Sound = "Rebirth" },
+	info = { Color = Color3.fromRGB(70, 150, 255), Sound = nil, Duration = 3 },
+	success = { Color = Color3.fromRGB(70, 195, 95), Sound = "Success", Duration = 2.5 },
+	error = { Color = Color3.fromRGB(230, 75, 75), Sound = "Error", Duration = 3 },
+	event = { Color = Color3.fromRGB(190, 90, 255), Sound = "Success", Duration = 5 },
+	reward = { Color = Color3.fromRGB(255, 170, 30), Sound = "Success", Duration = 5 },
+	candy = { Color = Color3.fromRGB(255, 100, 190), Sound = "Candy", Duration = 2 },
+	rebirth = { Color = Color3.fromRGB(150, 90, 255), Sound = "Rebirth", Duration = 5 },
 }
 
 local container: Frame
@@ -104,7 +104,7 @@ function Notifications.show(message: string, style: string?, duration: number?)
 		removeToast(toasts[i])
 	end
 
-	task.delay(duration or 3, removeToast, toast)
+	task.delay(duration or settings.Duration, removeToast, toast)
 end
 
 return Notifications

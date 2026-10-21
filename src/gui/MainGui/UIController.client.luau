@@ -21,12 +21,14 @@ screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 local UIKit = require(script.Parent.UIKit)
 local Notifications = require(script.Parent.Notifications)
 local HUD = require(script.Parent.HUD)
+local EventBanner = require(script.Parent.EventBanner)
 local Panels = script.Parent:WaitForChild("Panels")
 
 ----------------------------------------------------------------------
 -- Création de l'interface
 ----------------------------------------------------------------------
 Notifications.init(screenGui)
+EventBanner.init(screenGui)
 
 local feedRequest = Remotes.event("FeedRequest")
 local hud = HUD.create(screenGui, function()
@@ -88,6 +90,7 @@ Remotes.event("StateUpdate").OnClientEvent:Connect(onStateUpdate)
 Remotes.event("Notify").OnClientEvent:Connect(function(message: string, style: string?)
 	Notifications.show(message, style)
 end)
+Remotes.event("CandyRainEvent").OnClientEvent:Connect(EventBanner.handle)
 
 -- Au démarrage, on demande l'état complet (le serveur attend que les données soient chargées)
 onStateUpdate(Remotes.func("GetState"):InvokeServer())

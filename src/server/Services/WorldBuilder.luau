@@ -296,7 +296,7 @@ function WorldBuilder.build()
 	decorations.Name = "Decorations"
 	decorations.Parent = map
 	for index = 1, cfg.PlotCount do
-		-- index 1 est laissé libre pour le panneau du classement (étape 6)
+		-- index 1 est laissé libre pour le panneau du classement (LeaderboardService)
 		if index > 1 then
 			local angle = math.rad((index - 0.5) * 360 / cfg.PlotCount)
 			local position = Vector3.new(math.cos(angle), 0, math.sin(angle)) * (cfg.PlazaRadius + 6)

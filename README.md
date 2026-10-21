@@ -184,3 +184,11 @@ Pour tester à plusieurs : onglet *Test* > *Clients and Servers* > choisis 2 jou
 - Interface : `RebirthPanel` (barre de progression, confirmation en 2 clics) et `SkinsPanel` (cartes avec un mini-monstre). Une pastille rouge **!** apparaît sur 🔄 quand la renaissance est possible.
 
 **Tester :** mets temporairement `Config.Rebirth.BaseRequiredSize = 10`, *Play*, clique 10 fois sur ton monstre, ouvre 🔄 **Renaître** et clique 2 fois sur le bouton : le monstre rétrécit, devient rose avec des antennes (skin « Bonbon rose »), tes pièces repartent à 0 et le multiplicateur passe à x1.5. Ouvre 🎨 **Skins** pour remettre le Classique. N'oublie pas de remettre `BaseRequiredSize = 1_000` ensuite.
+
+### Étape 6 — Récompense quotidienne + pluie de bonbons + classement ✅
+- `DailyRewardService` : à la première connexion de la journée (heure UTC), le joueur reçoit des pièces. Une **série** de jours d'affilée augmente le cadeau (jusqu'à 7 jours). Rater un jour remet la série à 1.
+- `CandyRainService` : toutes les 10 minutes, annonce 10 s avant, puis 30 s de bonbons qui tombent sur la place. Le serveur crée les bonbons, détecte le contact (`Touched`) et vérifie que le joueur est vraiment à côté. Chaque bonbon donne de la taille.
+- `LeaderboardService` : panneau 🏆 sur la place avec le top 10 des records de taille de **tous les serveurs** (OrderedDataStore), mis à jour chaque minute. Sans accès aux API, il montre le top du serveur actuel.
+- Interface : `EventBanner` affiche l'annonce et le compte à rebours de la pluie.
+
+**Tester :** *Play*. Une notification dorée « 🎁 Cadeau du jour » apparaît (une seule fois par jour : pour la revoir, utilise un autre compte ou attends demain). Dans Studio, la pluie de bonbons commence après 30 secondes (`StudioFirstEventDelay`) : cours sur la place centrale et touche les bonbons. Le panneau du classement est au bord de la place.
