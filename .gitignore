@@ -1,0 +1,12 @@
+# Fichiers générés par Rojo / Roblox Studio (inutile de les mettre sur Git)
+*.rbxl
+*.rbxlx
+*.rbxl.lock
+*.rbxlx.lock
+*.rbxm
+*.rbxmx
+sourcemap.json
+
+# Fichiers système
+.DS_Store
+Thumbs.db

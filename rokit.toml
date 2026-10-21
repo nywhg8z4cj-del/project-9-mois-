@@ -1,0 +1,4 @@
+# Rokit installe automatiquement les bons outils pour ce projet.
+# Dans le dossier du projet, tape simplement :  rokit install
+[tools]
+rojo = "rojo-rbx/rojo@7.4.4"
