@@ -195,6 +195,8 @@ end
 -- L'interface est dessinée pour un écran d'environ 1100 × 650 pixels.
 -- Un UIScale agrandit ou rétrécit chaque bloc selon l'écran réel.
 local responsiveScales: { UIScale } = {}
+local scaleListeners: { (number) -> () } = {}
+local currentScale = 1
 
 local function computeScale(): number
 	local camera = workspace.CurrentCamera
@@ -208,9 +210,25 @@ end
 
 local function refreshScales()
 	local scale = computeScale()
+	currentScale = scale
 	for _, uiScale in responsiveScales do
 		uiScale.Scale = scale
 	end
+	for _, listener in scaleListeners do
+		task.spawn(listener, scale)
+	end
+end
+
+-- L'échelle actuelle de l'interface (1 = écran d'ordinateur « normal »)
+function UIKit.getScale(): number
+	return currentScale
+end
+
+-- Appelle callback(échelle) maintenant et à chaque changement de taille d'écran.
+-- Utile pour placer un élément par rapport à un autre qui a un UIScale.
+function UIKit.onScaleChanged(callback: (number) -> ())
+	table.insert(scaleListeners, callback)
+	callback(currentScale)
 end
 
 -- Ajoute un UIScale automatique à un bloc de l'interface

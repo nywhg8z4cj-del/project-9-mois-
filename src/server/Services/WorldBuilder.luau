@@ -203,6 +203,53 @@ local function buildPlot(index: number, parent: Instance): PlotInfo
 end
 
 ----------------------------------------------------------------------
+-- Lumière et couleurs (effets « post-traitement » dans Lighting)
+----------------------------------------------------------------------
+local function setLightingEffect(className: string, name: string, properties: { [string]: any })
+	local old = Lighting:FindFirstChild(name)
+	if old then
+		old:Destroy()
+	end
+	local effect = Instance.new(className)
+	effect.Name = name
+	for property, value in properties do
+		(effect :: any)[property] = value
+	end
+	effect.Parent = Lighting
+end
+
+local function setupLighting()
+	-- Une belle journée ensoleillée
+	Lighting.ClockTime = 14
+	Lighting.Brightness = 2.5
+	Lighting.OutdoorAmbient = Color3.fromRGB(150, 140, 170)
+
+	-- Une légère brume colorée au loin
+	setLightingEffect("Atmosphere", "GrowAtmosphere", {
+		Density = 0.28,
+		Haze = 1.2,
+		Color = Color3.fromRGB(255, 220, 240),
+		Decay = Color3.fromRGB(150, 180, 255),
+	})
+	-- Des couleurs un peu plus vives (jeu « bonbon »)
+	setLightingEffect("ColorCorrectionEffect", "GrowCouleurs", {
+		Saturation = 0.15,
+		Contrast = 0.05,
+		Brightness = 0.02,
+	})
+	-- Les matières « Neon » brillent joliment
+	setLightingEffect("BloomEffect", "GrowBrillance", {
+		Intensity = 0.6,
+		Size = 24,
+		Threshold = 1.6,
+	})
+	setLightingEffect("SunRaysEffect", "GrowRayons", {
+		Intensity = 0.05,
+		Spread = 0.6,
+	})
+end
+
+----------------------------------------------------------------------
 -- Construction de toute la carte
 ----------------------------------------------------------------------
 function WorldBuilder.build()
@@ -313,10 +360,7 @@ function WorldBuilder.build()
 	end
 
 	map.Parent = workspace
-
-	-- Une belle journée ensoleillée
-	Lighting.ClockTime = 14
-	Lighting.Brightness = 2.5
+	setupLighting()
 end
 
 return WorldBuilder

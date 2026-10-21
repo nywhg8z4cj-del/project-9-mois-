@@ -203,3 +203,74 @@ Pour tester à plusieurs : onglet *Test* > *Clients and Servers* > choisis 2 jou
 > ⚠️ Les IDs dans `Config.Monetization` et `Config.Skins` sont des **exemples**. Le commentaire en haut de la section Monétisation de `Config.luau` explique où créer tes gamepass/produits et copier leurs vrais IDs.
 
 **Tester :** après avoir mis tes vrais IDs, *Play*, ouvre 💎 **Robux** et clique sur un pack. Dans Studio, l'achat est un **test gratuit** (aucun Robux n'est dépensé). Tu dois recevoir les pièces et voir `[Robux] TonPseudo a acheté le produit ...` dans *Output*. Avec les IDs d'exemple, Roblox affiche une erreur « objet introuvable » : c'est normal.
+
+### Étape 8 — Interface finale et effets ✅
+- **Mobile et ordinateur** : chaque bloc de l'interface a un `UIScale` calculé selon la taille de l'écran (`UIKit.addResponsiveScale`) et des `UIAspectRatioConstraint` gardent les icônes et boutons bien proportionnés. Les notifications et la bannière se placent automatiquement sous/au-dessus des autres blocs.
+- **Animations d'interface** : compteur de pièces qui défile, pastilles qui font « pop » quand la taille augmente ou après un gros gain, fenêtres qui s'ouvrent avec un effet rebond, boutons qui s'enfoncent, sons de clic/achat/erreur.
+- **Effets 3D** : le monstre « respire » doucement, un contour blanc apparaît quand ta souris passe sur **ton** monstre, lumière plus colorée (Atmosphere, Bloom, ColorCorrection, SunRays).
+- **Accueil** : deux conseils s'affichent pour les nouveaux joueurs.
+
+**Tester sur mobile dans Studio :** onglet *Test* > bouton **Device** (icône téléphone) et choisis un téléphone (ex : iPhone 14) : l'interface doit rester lisible et rien ne doit dépasser. Reviens sur *Actual resolution* pour l'ordinateur.
+
+---
+
+## 🗂️ Tous les scripts
+
+| Fichier | Rôle |
+|---|---|
+| `server/Main.server.luau` | Démarre la carte et tous les services dans le bon ordre |
+| `server/Services/PlayerDataService.luau` | Données des joueurs, leaderstats, sauvegarde DataStore |
+| `server/Services/RemoteGuard.luau` | Vérifie chaque demande d'un client (chargé ? trop rapide ? erreur ?) |
+| `server/Services/Notifier.luau` | Envoie les notifications à l'écran |
+| `server/Services/WorldBuilder.luau` | Construit la carte et la lumière |
+| `server/Services/PlotService.luau` | Donne / libère les parcelles, nom du propriétaire |
+| `server/Services/MonsterBuilder.luau` | Fabrique le modèle 3D du monstre selon le skin |
+| `server/Services/MonsterService.luau` | Monstre : clic, croissance, effets |
+| `server/Services/IncomeService.luau` | Pièces chaque seconde + auto-nourrisseur |
+| `server/Services/ShopService.luau` | Achats de nourriture et d'améliorations |
+| `server/Services/SkinService.luau` | Équiper / acheter des skins |
+| `server/Services/RebirthService.luau` | Renaissance |
+| `server/Services/DailyRewardService.luau` | Cadeau quotidien et série |
+| `server/Services/CandyRainService.luau` | Pluie de bonbons |
+| `server/Services/LeaderboardService.luau` | Panneau top 10 (OrderedDataStore) |
+| `server/Services/MonetizationService.luau` | Gamepass et achats Robux (ProcessReceipt) |
+| `client/MonsterAnimator.client.luau` | Animations des monstres (croissance, rebond, particules, son) |
+| `client/ChatTags.client.luau` | Tag [VIP] dans le chat |
+| `gui/MainGui/UIController.client.luau` | Chef de l'interface : HUD, fenêtres, mises à jour |
+| `gui/MainGui/UIKit.luau` | Outils pour créer l'interface (couleurs, boutons, adaptation à l'écran) |
+| `gui/MainGui/HUD.luau` | Compteurs, menu de gauche, bouton NOURRIR |
+| `gui/MainGui/Notifications.luau` | Messages temporaires à l'écran |
+| `gui/MainGui/EventBanner.luau` | Bannière de la pluie de bonbons |
+| `gui/MainGui/RobuxPrices.luau` | Lit les vrais prix Robux |
+| `gui/MainGui/Panels/*.luau` | Fenêtres : Boutique, Améliorations, Renaissance, Skins, Robux |
+
+---
+
+## 🚀 Liste de vérification avant de publier
+
+**Réglages du jeu**
+- [ ] Remets `Config.Debug.StudioStartingCoins = 0` et toutes les valeurs que tu as changées pour tester (ex : `Config.Rebirth.BaseRequiredSize`).
+- [ ] *File > Publish to Roblox* (choisis un nom : « Grow a Giant »).
+- [ ] *Home > Game Settings > Security* : **Enable Studio Access to API Services** activé (pour tester la sauvegarde dans Studio).
+- [ ] Sur le Creator Hub (<https://create.roblox.com/dashboard/creations>) > ton jeu > *Places* > ta place > **Server Size / Max Players = 6** (il y a 6 parcelles).
+
+**Robux**
+- [ ] *Monetization > Passes* : crée **VIP** (ex : 199 R$) et **Auto-nourrisseur turbo** (ex : 99 R$), avec une image chacun, puis mets-les **en vente** (*Sales > Item for Sale*).
+- [ ] *Monetization > Developer Products* : crée les 3 packs de pièces et les 2 skins Robux (Licorne, Robot).
+- [ ] Copie chaque ID dans `Config.Monetization` (gamepass + packs) et `Config.Skins` (`ProductId` de Licorne et Robot).
+- [ ] Teste chaque achat dans Studio (les achats de test sont gratuits) et regarde *Output*.
+
+**Page du jeu**
+- [ ] **Icône** : image carrée 512 × 512 px, colorée, avec ton monstre bien visible (pas de texte trop petit).
+- [ ] **Miniatures** : au moins 3 images 1920 × 1080 px (ou une courte vidéo) : un petit monstre, un monstre géant, la pluie de bonbons.
+- [ ] **Description** claire, par exemple : « Nourris ton petit monstre et fais-le devenir GÉANT ! 🍔🍕🪐 Achète de la nourriture de plus en plus folle, débloque des améliorations, fais-le renaître pour gagner des skins, et attrape les bonbons de la Pluie de bonbons toutes les 10 minutes ! Deviens le plus gros monstre du serveur ! »
+- [ ] **Genre** : Simulation. Ajoute des mots-clés dans la description (monstre, grandir, simulateur, nourriture).
+- [ ] **Questionnaire de maturité** (*Questionnaire / Maturity & Compliance*) : remplis-le honnêtement. Le jeu n'a ni violence, ni sang, ni contenu effrayant : il devrait obtenir la classification la plus basse (« Minimal »), adaptée à tous les âges.
+- [ ] **Appareils** : coche Ordinateur, Téléphone, Tablette (et Console si tu veux).
+- [ ] *Permissions* : passe le jeu en **Public** quand tout est prêt.
+
+**Derniers tests**
+- [ ] *Test > Clients and Servers* avec 2 ou 3 joueurs : chacun a sa parcelle, son nom, son monstre.
+- [ ] Quitter puis revenir : la progression est bien sauvegardée.
+- [ ] Teste sur un vrai téléphone avec l'application Roblox.
+- [ ] Vérifie qu'il n'y a pas d'erreur rouge dans *Output* (et dans la console du jeu publié : touche **F9**).

@@ -15,44 +15,58 @@ local Notifications = require(script.Parent.Notifications)
 
 local EventBanner = {}
 
-local banner: Frame
+local banner: Frame -- cadre invisible (adaptation à l'écran)
 local bannerText: TextLabel
+local pulse: UIScale
 local pulseTween: Tween
 local currentToken = 0 -- change à chaque nouveau message, pour arrêter l'ancien compte à rebours
 
 function EventBanner.init(screenGui: ScreenGui)
+	-- Un objet ne peut avoir qu'UN UIScale : le cadre « banner » s'adapte à l'écran,
+	-- le cadre « inner » (visible) fait l'animation de battement.
 	banner = UIKit.create("Frame", {
 		Name = "BanniereEvenement",
 		AnchorPoint = Vector2.new(0.5, 1),
-		Position = UDim2.new(0.5, 0, 1, -112), -- juste au-dessus du bouton NOURRIR
 		Size = UDim2.fromOffset(560, 62),
-		BackgroundColor3 = Color3.new(1, 1, 1),
+		BackgroundTransparency = 1,
 		Visible = false,
 		ZIndex = 40,
 		Parent = screenGui,
 	})
-	UIKit.corner(banner, 20)
-	UIKit.stroke(banner, UIKit.Colors.Outline, 4)
+	local inner = UIKit.create("Frame", {
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.5),
+		Size = UDim2.fromScale(1, 1),
+		BackgroundColor3 = Color3.new(1, 1, 1),
+		ZIndex = 40,
+		Parent = banner,
+	})
+	UIKit.corner(inner, 20)
+	UIKit.stroke(inner, UIKit.Colors.Outline, 4)
 	UIKit.create("UIGradient", {
 		Color = ColorSequence.new({
 			ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 110, 200)),
 			ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 200, 80)),
 			ColorSequenceKeypoint.new(1, Color3.fromRGB(120, 200, 255)),
 		}),
-		Parent = banner,
+		Parent = inner,
 	})
 	UIKit.addResponsiveScale(banner)
+	-- Toujours juste au-dessus du bouton NOURRIR (qui change de taille selon l'écran)
+	UIKit.onScaleChanged(function(scale)
+		banner.Position = UDim2.new(0.5, 0, 1, -(18 + 76 * scale + 14))
+	end)
 
 	bannerText = UIKit.label({
 		Size = UDim2.new(1, -24, 1, -12),
 		Position = UDim2.fromOffset(12, 6),
 		Text = "",
 		ZIndex = 41,
-		Parent = banner,
+		Parent = inner,
 	})
 
 	-- La bannière « bat » doucement pour attirer l'œil
-	local pulse = UIKit.create("UIScale", { Name = "Battement", Parent = banner })
+	pulse = UIKit.create("UIScale", { Name = "Battement", Parent = inner })
 	pulseTween = TweenService:Create(pulse, TweenInfo.new(0.6, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), { Scale = 1.06 })
 end
 
@@ -82,6 +96,7 @@ local function hide()
 	currentToken += 1
 	banner.Visible = false
 	pulseTween:Cancel()
+	pulse.Scale = 1
 end
 
 function EventBanner.handle(phase: string, value: number?)

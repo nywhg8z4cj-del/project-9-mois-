@@ -41,6 +41,7 @@ local function createPreview(parent: Instance, skin)
 	})
 	UIKit.corner(body, 42)
 	UIKit.stroke(body, UIKit.Colors.Outline, 3)
+	UIKit.create("UIAspectRatioConstraint", { AspectRatio = 1, Parent = body }) -- toujours bien rond
 	for _, x in { 0.32, 0.68 } do
 		local eye = UIKit.create("Frame", {
 			AnchorPoint = Vector2.new(0.5, 0.5),

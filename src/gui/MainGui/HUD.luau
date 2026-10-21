@@ -8,13 +8,23 @@
 	Le HUD n'invente aucun chiffre : il affiche ce que le serveur envoie (state).
 ]]
 
-local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 
 local Format = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Format"))
 local UIKit = require(script.Parent.UIKit)
 
 local HUD = {}
+
+-- Petite animation : la pastille grossit puis revient (quand la valeur augmente)
+local function pop(pill: Frame, strength: number)
+	local scale = pill:FindFirstChild("Pop") :: UIScale?
+	if scale then
+		scale.Scale = 1 + strength
+		TweenService:Create(scale, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = 1 }):Play()
+	end
+end
 
 -- Crée une « pastille » d'information (icône + grand texte + petit texte)
 local function createPill(parent: Instance, name: string, width: number, color: Color3, icon: string, order: number)
@@ -29,7 +39,7 @@ local function createPill(parent: Instance, name: string, width: number, color: 
 	UIKit.stroke(pill, UIKit.Colors.Outline, 3)
 	UIKit.gradient(pill, color)
 
-	UIKit.label({
+	local iconLabel = UIKit.label({
 		Name = "Icone",
 		Size = UDim2.fromOffset(50, 50),
 		Position = UDim2.fromOffset(8, 7),
@@ -37,6 +47,10 @@ local function createPill(parent: Instance, name: string, width: number, color: 
 		Outline = false,
 		Parent = pill,
 	})
+	-- L'icône reste bien carrée, quel que soit l'écran
+	UIKit.create("UIAspectRatioConstraint", { AspectRatio = 1, Parent = iconLabel })
+	-- Pour l'animation « pop » quand la valeur augmente
+	UIKit.create("UIScale", { Name = "Pop", Parent = pill })
 	local main = UIKit.label({
 		Name = "Valeur",
 		Size = UDim2.new(1, -70, 0, 36),
@@ -120,6 +134,7 @@ function HUD.create(screenGui: ScreenGui, onFeed: () -> ())
 			LayoutOrder = menuCount,
 			Parent = menu,
 		}, onClick)
+		UIKit.create("UIAspectRatioConstraint", { AspectRatio = 86 / 82, Parent = button })
 		UIKit.label({
 			Name = "Icone",
 			Size = UDim2.new(1, 0, 0.6, 0),
@@ -166,16 +181,26 @@ function HUD.create(screenGui: ScreenGui, onFeed: () -> ())
 	------------------------------------------------------------------
 	-- En bas : le bouton « NOURRIR »
 	------------------------------------------------------------------
-	local feedButton = UIKit.button({
-		Name = "BoutonNourrir",
+	-- (un cadre invisible porte l'adaptation à l'écran, le bouton garde son animation d'appui)
+	local feedHolder = UIKit.create("Frame", {
+		Name = "Nourrir",
 		AnchorPoint = Vector2.new(0.5, 1),
 		Position = UDim2.new(0.5, 0, 1, -18),
 		Size = UDim2.fromOffset(240, 76),
+		BackgroundTransparency = 1,
+		Parent = screenGui,
+	})
+	UIKit.addResponsiveScale(feedHolder)
+	UIKit.create("UIAspectRatioConstraint", { AspectRatio = 240 / 76, Parent = feedHolder })
+	local feedButton = UIKit.button({
+		Name = "BoutonNourrir",
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.5),
+		Size = UDim2.fromScale(1, 1),
 		Text = "",
 		Color = UIKit.Colors.Feed,
-		Parent = screenGui,
+		Parent = feedHolder,
 	}, onFeed)
-	UIKit.addResponsiveScale(feedButton)
 	UIKit.label({
 		Size = UDim2.new(1, -16, 0.6, 0),
 		Position = UDim2.fromOffset(8, 4),
@@ -200,8 +225,24 @@ function HUD.create(screenGui: ScreenGui, onFeed: () -> ())
 	------------------------------------------------------------------
 	-- Mise à jour avec les infos du serveur
 	------------------------------------------------------------------
+	-- Le compteur de pièces « défile » jusqu'à la nouvelle valeur au lieu de sauter
+	local shownCoins = Instance.new("NumberValue")
+	shownCoins.Changed:Connect(function(value)
+		coinsText.Text = Format.number(value)
+	end)
+	local lastCoins, lastSize = nil, nil
+
 	function hud.update(state)
-		coinsText.Text = Format.number(state.Coins)
+		TweenService:Create(shownCoins, TweenInfo.new(0.4), { Value = state.Coins }):Play()
+		-- Gros gain (cadeau, pack...) : la pastille fait « pop »
+		if lastCoins and state.Coins > lastCoins + state.IncomePerSecond * 2 then
+			pop(coinsPill, 0.15)
+		end
+		if lastSize and state.Size > lastSize then
+			pop(sizePill, 0.08)
+		end
+		lastCoins, lastSize = state.Coins, state.Size
+
 		incomeText.Text = "+" .. Format.number(state.IncomePerSecond) .. " / s"
 		sizeText.Text = Format.number(state.Size)
 		bestText.Text = "Record : " .. Format.number(state.BestSize)

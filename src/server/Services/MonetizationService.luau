@@ -59,11 +59,11 @@ local function applyPassEffects(player: Player)
 	local passes = PlayerDataService.getPasses(player)
 	player:SetAttribute("IsVIP", passes.VIP) -- lu par ChatTags.client.luau pour le tag [VIP]
 	MonsterService.refreshNameLabel(player)
-	SkinService.validateEquipped(player)
 end
 
 -- À la connexion : quels gamepass le joueur possède-t-il ?
 local function checkPasses(player: Player)
+	local allChecked = true
 	for name, pass in Config.Monetization.GamePasses do
 		local ok, owns = pcall(function()
 			return MarketplaceService:UserOwnsGamePassAsync(player.UserId, pass.Id)
@@ -71,10 +71,16 @@ local function checkPasses(player: Player)
 		if ok then
 			PlayerDataService.setPass(player, name, owns)
 		else
+			allChecked = false
 			warn(`[Robux] Impossible de vérifier le gamepass {name} pour {player.Name} : {owns}`)
 		end
 	end
 	applyPassEffects(player)
+	-- Skin VIP porté sans être VIP ? On remet le Classique.
+	-- (seulement si Roblox a bien répondu, pour ne pas enlever le skin d'un vrai VIP par erreur)
+	if allChecked then
+		SkinService.validateEquipped(player)
+	end
 end
 
 -- Un gamepass vient d'être acheté pendant la partie

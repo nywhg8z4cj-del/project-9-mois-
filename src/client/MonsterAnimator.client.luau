@@ -5,14 +5,18 @@
 	(attribut Size). Ce script, sur l'ordinateur de chaque joueur :
 	  - fait GRANDIR le monstre en douceur avec TweenService ;
 	  - le garde posé au sol (on agrandit tout depuis le point au sol) ;
-	  - joue les effets quand il mange : rebond, particules, son, « +1 » flottant.
+	  - joue les effets quand il mange : rebond, particules, son, « +1 » flottant ;
+	  - le fait « respirer » doucement, et l'entoure d'un contour quand ta souris
+	    passe sur TON monstre.
 
 	Pourquoi côté client ? Une animation faite par le serveur saccade
 	(elle doit voyager sur Internet). Faite ici, elle est parfaitement fluide.
 ]]
 
 local CollectionService = game:GetService("CollectionService")
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -31,15 +35,20 @@ type MonsterState = {
 	Parts: { PartInfo },
 	Scale: NumberValue, -- l'échelle « grandir » (animée)
 	Bounce: NumberValue, -- l'échelle « rebond » (animée)
+	Phase: number, -- décalage de la respiration (pour que les monstres ne respirent pas tous en même temps)
 	GrowTween: Tween?,
 	BounceTween: Tween?,
 }
 
 local states: { [Model]: MonsterState } = {}
 
+local BREATH_AMOUNT = 0.025 -- le monstre gonfle de 2,5 % en respirant
+local BREATH_SPEED = 2.5
+
 -- Applique l'échelle actuelle à toutes les Parts du monstre
 local function applyScale(state: MonsterState)
-	local scale = state.Scale.Value * state.Bounce.Value
+	local breath = 1 + BREATH_AMOUNT * math.sin(os.clock() * BREATH_SPEED + state.Phase)
+	local scale = state.Scale.Value * state.Bounce.Value * breath
 	for _, info in state.Parts do
 		info.Part.Size = info.BaseSize * scale
 		-- On écarte chaque Part du point au sol proportionnellement à l'échelle :
@@ -104,17 +113,10 @@ local function setupMonster(model: Model)
 		Parts = parts,
 		Scale = Instance.new("NumberValue"),
 		Bounce = Instance.new("NumberValue"),
+		Phase = math.random() * math.pi * 2,
 	}
 	state.Bounce.Value = 1
 	states[model] = state
-
-	-- Dès qu'une des deux échelles change (pendant une animation), on redessine
-	state.Scale.Changed:Connect(function()
-		applyScale(state)
-	end)
-	state.Bounce.Changed:Connect(function()
-		applyScale(state)
-	end)
 
 	-- Première fois : on met directement la bonne taille (sans animation)
 	growToCurrentSize(state, true)
@@ -124,6 +126,22 @@ local function setupMonster(model: Model)
 	model:GetAttributeChangedSignal("Size"):Connect(function()
 		growToCurrentSize(state, false)
 	end)
+
+	-- Contour lumineux quand la souris passe sur SON propre monstre
+	local clickDetector = model:FindFirstChildOfClass("ClickDetector")
+	if clickDetector and model:GetAttribute("OwnerUserId") == Players.LocalPlayer.UserId then
+		local highlight = Instance.new("Highlight")
+		highlight.FillTransparency = 1
+		highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+		highlight.Enabled = false
+		highlight.Parent = model
+		clickDetector.MouseHoverEnter:Connect(function()
+			highlight.Enabled = true
+		end)
+		clickDetector.MouseHoverLeave:Connect(function()
+			highlight.Enabled = false
+		end)
+	end
 end
 
 local function cleanupMonster(model: Model)
@@ -246,3 +264,10 @@ for _, instance in CollectionService:GetTagged(MONSTER_TAG) do
 end
 
 Remotes.event("FeedEffect").OnClientEvent:Connect(onFeedEffect)
+
+-- À chaque image : on redessine les monstres (respiration + animations en cours)
+RunService.Heartbeat:Connect(function()
+	for _, state in states do
+		applyScale(state)
+	end
+end)

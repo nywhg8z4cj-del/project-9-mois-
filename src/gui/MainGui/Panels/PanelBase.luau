@@ -26,19 +26,32 @@ export type Panel = {
 
 -- options = { Name, Title, Icon, Color, Grid (true = grille de cartes au lieu d'une liste) }
 function PanelBase.new(screenGui: ScreenGui, options): Panel
-	local frame = UIKit.create("Frame", {
+	-- Un objet ne peut avoir qu'UN SEUL UIScale. On utilise donc 2 cadres :
+	--   « holder » (invisible) : adapte la taille à l'écran ;
+	--   « frame » (la fenêtre) : fait l'animation « pop » à l'ouverture.
+	local holder = UIKit.create("Frame", {
 		Name = options.Name,
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.fromScale(0.5, 0.52),
 		Size = UDim2.fromOffset(660, 450),
-		BackgroundColor3 = UIKit.Colors.Panel,
+		BackgroundTransparency = 1,
 		Visible = false,
 		ZIndex = 10,
 		Parent = screenGui,
 	})
+	UIKit.addResponsiveScale(holder)
+
+	local frame = UIKit.create("Frame", {
+		Name = "Fenetre",
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.5),
+		Size = UDim2.fromScale(1, 1),
+		BackgroundColor3 = UIKit.Colors.Panel,
+		ZIndex = 10,
+		Parent = holder,
+	})
 	UIKit.corner(frame, 22)
 	UIKit.stroke(frame, UIKit.Colors.Outline, 4)
-	UIKit.addResponsiveScale(frame)
 	local popScale = UIKit.create("UIScale", { Name = "Apparition", Parent = frame })
 
 	-- Le bandeau de titre
@@ -98,22 +111,22 @@ function PanelBase.new(screenGui: ScreenGui, options): Panel
 	end
 
 	local panel = {} :: Panel
-	panel.Frame = frame
+	panel.Frame = holder
 	panel.Content = content
 
 	function panel.isOpen()
-		return frame.Visible
+		return holder.Visible
 	end
 
 	function panel.open()
-		frame.Visible = true
+		holder.Visible = true
 		-- Petite animation « pop » à l'ouverture
 		popScale.Scale = 0.85
 		TweenService:Create(popScale, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = 1 }):Play()
 	end
 
 	function panel.close()
-		frame.Visible = false
+		holder.Visible = false
 	end
 
 	function panel.update(_state) end -- chaque fenêtre remplace cette fonction

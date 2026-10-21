@@ -94,6 +94,17 @@ end)
 Remotes.event("CandyRainEvent").OnClientEvent:Connect(EventBanner.handle)
 
 -- Au démarrage, on demande l'état complet (le serveur attend que les données soient chargées)
-onStateUpdate(Remotes.func("GetState"):InvokeServer())
+local firstState = Remotes.func("GetState"):InvokeServer()
+onStateUpdate(firstState)
+
+-- Petit conseil pour les nouveaux joueurs
+if firstState and firstState.Rebirths == 0 and firstState.Size <= 5 then
+	task.delay(1.5, function()
+		Notifications.show("👆 Clique sur ton monstre (ou sur NOURRIR) pour le faire grandir !", "info", 6)
+	end)
+	task.delay(8, function()
+		Notifications.show("💰 Il rapporte des pièces : achète-lui à manger dans la 🍔 Boutique !", "info", 6)
+	end)
+end
 
 print("✅ [Grow a Giant] Interface prête")

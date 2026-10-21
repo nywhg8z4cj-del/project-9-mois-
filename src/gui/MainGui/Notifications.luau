@@ -44,6 +44,10 @@ function Notifications.init(screenGui: ScreenGui)
 		Parent = container,
 	})
 	UIKit.addResponsiveScale(container)
+	-- Toujours juste sous la barre du haut (qui change de taille selon l'écran)
+	UIKit.onScaleChanged(function(scale)
+		container.Position = UDim2.new(0.5, 0, 0, 8 + 70 * scale + 10)
+	end)
 end
 
 local function removeToast(toast: CanvasGroup)
