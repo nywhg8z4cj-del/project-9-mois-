@@ -158,3 +158,13 @@ dans Studio sans attendre (aucun effet dans le jeu publié).
 
 **Tester :** *Play*. Tu apparais sur ta parcelle devant ton monstre. Clique dessus plusieurs fois : il grandit, rebondit et le compteur de taille monte. Regarde les pièces augmenter toutes les secondes (en haut et dans le tableau en haut à droite). Dans *Output* tu dois voir `[Parcelles] TonPseudo reçoit la parcelle 1`.
 Pour tester à plusieurs : onglet *Test* > *Clients and Servers* > choisis 2 joueurs > *Start*.
+
+### Étape 3 — Sauvegarde ✅
+- `PlayerDataService` charge les données avec `GetAsync` et les sauvegarde avec `UpdateAsync`, toujours dans un `pcall` avec plusieurs essais (`Config.DataStore.MaxRetries`).
+- Sauvegarde : quand le joueur quitte, toutes les 2 minutes, et à la fermeture du serveur (`BindToClose`).
+- Sont sauvegardés : pièces, taille, record, améliorations, renaissances, skins possédés et équipé, série de connexion, derniers achats Robux.
+- Si le chargement échoue dans le vrai jeu, le joueur est renvoyé avec un message (pour ne jamais écraser sa sauvegarde avec des données vides). Dans Studio sans accès aux API, le jeu tourne sans sauvegarde et l'explique dans *Output*.
+
+> ⚠️ **Rappel :** active **Enable Studio Access to API Services** (*Home > Game Settings > Security*) après avoir publié le jeu, sinon rien n'est sauvegardé dans Studio.
+
+**Tester :** *Play*, fais grandir ton monstre, note ta taille et tes pièces, puis *Stop*. Dans *Output* : `[Sauvegarde] TonPseudo sauvegardé ✔`. Relance *Play* : tu retrouves ta taille et tes pièces (`Données de TonPseudo chargées ✔`).

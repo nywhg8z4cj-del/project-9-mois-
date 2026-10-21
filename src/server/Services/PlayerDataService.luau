@@ -9,10 +9,20 @@
 	  - le leaderstats (tableau des scores en haut à droite) soit à jour ;
 	  - l'interface du joueur reçoive les nouvelles valeurs.
 
-	⚠️ Étape 2 : les données sont seulement gardées en mémoire.
-	   (La sauvegarde DataStore arrive à l'étape 3.)
+	💾 SAUVEGARDE (DataStoreService) :
+	  - chargement quand le joueur arrive (avec plusieurs essais si Roblox ne répond pas) ;
+	  - sauvegarde quand il part, toutes les 2 minutes, et quand le serveur s'arrête (BindToClose).
+	  - Si le chargement échoue vraiment, le joueur est renvoyé (Kick) : c'est mieux
+	    que de le laisser jouer avec des données vides qui écraseraient sa sauvegarde !
+
+	⚠️ Dans Studio : active « Enable Studio Access to API Services »
+	   (Home > Game Settings > Security), sinon le jeu tourne SANS sauvegarde.
+
+	(Pour un très gros jeu, on utiliserait aussi un « verrou de session »,
+	par exemple avec le module ProfileStore. Ici on garde ça simple.)
 ]]
 
+local DataStoreService = game:GetService("DataStoreService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -32,6 +42,10 @@ type Profile = {
 	Data: PlayerData,
 	Passes: Passes,
 	Dirty: boolean, -- true = quelque chose a changé, il faut prévenir le client
+	CanSave: boolean, -- false = mode Studio sans accès aux DataStores
+	Leaving: boolean, -- true = le joueur est en train de partir
+	FinalSaveStarted: boolean, -- true = la dernière sauvegarde est lancée
+	Saving: boolean, -- true = une sauvegarde est en cours
 }
 
 local PlayerDataService = {}
@@ -66,6 +80,136 @@ local function newData(): PlayerData
 		data.Coins = Config.Debug.StudioStartingCoins
 	end
 	return data
+end
+
+----------------------------------------------------------------------
+-- 💾 DataStore : chargement et sauvegarde
+----------------------------------------------------------------------
+local dataStore: DataStore? = nil
+local activeSaves = 0 -- nombre de sauvegardes en cours (pour BindToClose)
+
+local function getStore(): DataStore?
+	if not dataStore then
+		local ok, result = pcall(function()
+			return DataStoreService:GetDataStore(Config.DataStore.Name)
+		end)
+		if ok then
+			dataStore = result
+		else
+			warn("[Sauvegarde] Impossible d'ouvrir le DataStore :", result)
+		end
+	end
+	return dataStore
+end
+
+-- La « clé » = le nom de la case où est rangée la sauvegarde d'un joueur
+local function keyFor(player: Player): string
+	return "Joueur_" .. player.UserId
+end
+
+-- Vrai si l'erreur veut dire « les DataStores sont désactivés dans Studio »
+local function isStudioAccessError(message: string): boolean
+	local lower = string.lower(message)
+	return string.find(lower, "studio", 1, true) ~= nil or string.find(lower, "publish", 1, true) ~= nil
+end
+
+-- Essaie « action » plusieurs fois (Roblox peut parfois ne pas répondre).
+-- Renvoie : réussi (true/false), résultat ou message d'erreur
+local function withRetries(description: string, action: () -> any): (boolean, any)
+	local cfg = Config.DataStore
+	local lastError = nil
+	for attempt = 1, cfg.MaxRetries do
+		local ok, result = pcall(action)
+		if ok then
+			return true, result
+		end
+		lastError = tostring(result)
+		warn(`[Sauvegarde] {description} : essai {attempt}/{cfg.MaxRetries} raté → {lastError}`)
+		if isStudioAccessError(lastError) then
+			break -- inutile de réessayer, l'accès est désactivé
+		end
+		task.wait(cfg.RetryDelay * attempt) -- on attend un peu plus à chaque fois
+	end
+	return false, lastError
+end
+
+-- Ajoute dans « saved » les valeurs du modèle « template » qui manquent.
+-- Utile quand tu ajoutes une nouvelle amélioration au jeu : les anciens
+-- joueurs la reçoivent automatiquement au niveau 0.
+local function reconcile(saved: { [any]: any }, template: { [any]: any })
+	for key, value in template do
+		if saved[key] == nil then
+			saved[key] = value
+		elseif type(value) == "table" and type(saved[key]) == "table" then
+			reconcile(saved[key], value)
+		end
+	end
+end
+
+-- Charge les données d'un joueur. Renvoie : données (ou nil), sauvegarde possible ?
+local function loadData(player: Player): (PlayerData?, boolean)
+	local store = getStore()
+	local ok, result = false, "DataStore indisponible"
+	if store then
+		ok, result = withRetries("Chargement de " .. player.Name, function()
+			return store:GetAsync(keyFor(player))
+		end)
+	end
+
+	if ok then
+		if result == nil then
+			print(`[Sauvegarde] Nouveau joueur : {player.Name} 👋`)
+			return newData(), true
+		end
+		reconcile(result, newData())
+		print(`[Sauvegarde] Données de {player.Name} chargées ✔`)
+		return result, true
+	end
+
+	-- Échec : dans Studio, on joue quand même mais sans sauvegarde
+	if RunService:IsStudio() then
+		warn("⚠️ [Sauvegarde] DataStores inaccessibles : le jeu tourne SANS sauvegarde.")
+		warn("   → Active « Enable Studio Access to API Services » dans Home > Game Settings > Security.")
+		return newData(), false
+	end
+	return nil, false
+end
+
+-- Sauvegarde les données d'un joueur. Renvoie true si c'est réussi.
+local function saveProfile(player: Player, profile: Profile, reason: string): boolean
+	if not profile.CanSave then
+		return true -- mode Studio sans sauvegarde : rien à faire
+	end
+	local store = getStore()
+	if not store then
+		return false
+	end
+
+	-- Une seule sauvegarde à la fois par joueur
+	while profile.Saving do
+		task.wait(0.1)
+	end
+	profile.Saving = true
+	activeSaves += 1
+
+	local ok, err = withRetries(`Sauvegarde de {player.Name} ({reason})`, function()
+		-- UpdateAsync est plus sûr que SetAsync : Roblox gère mieux les conflits
+		return store:UpdateAsync(keyFor(player), function()
+			return profile.Data
+		end)
+	end)
+
+	activeSaves -= 1
+	profile.Saving = false
+
+	if ok then
+		if Config.Debug.Verbose then
+			print(`[Sauvegarde] {player.Name} sauvegardé ✔ ({reason})`)
+		end
+	else
+		warn(`[Sauvegarde] ÉCHEC pour {player.Name} ({reason}) : {err}`)
+	end
+	return ok
 end
 
 ----------------------------------------------------------------------
@@ -120,14 +264,17 @@ function PlayerDataService.getPasses(player: Player): Passes
 end
 
 function PlayerDataService.isLoaded(player: Player): boolean
-	return profiles[player] ~= nil
+	local profile = profiles[player]
+	return profile ~= nil and not profile.Leaving
 end
 
 -- Liste des joueurs dont les données sont chargées
 function PlayerDataService.getLoadedPlayers(): { Player }
 	local list = {}
-	for player in profiles do
-		table.insert(list, player)
+	for player, profile in profiles do
+		if not profile.Leaving then
+			table.insert(list, player)
+		end
 	end
 	return list
 end
@@ -178,6 +325,15 @@ function PlayerDataService.setPass(player: Player, passName: string, owned: bool
 	end
 end
 
+-- Sauvegarde tout de suite (utilisé après un achat en Robux). Renvoie true si réussi.
+function PlayerDataService.saveNow(player: Player, reason: string?): boolean
+	local profile = profiles[player]
+	if not profile then
+		return false
+	end
+	return saveProfile(player, profile, reason or "immédiate")
+end
+
 -- Appelle « callback(player, data) » quand les données d'un joueur sont prêtes.
 -- (Les services s'en servent pour créer la parcelle, le monstre...)
 function PlayerDataService.onDataLoaded(callback: (Player, PlayerData) -> ())
@@ -224,12 +380,25 @@ end
 -- Arrivée et départ des joueurs
 ----------------------------------------------------------------------
 local function onPlayerAdded(player: Player)
-	local data = newData()
+	local data, canSave = loadData(player)
+
+	-- Le joueur est parti pendant le chargement : on arrête là
+	if not player.Parent then
+		return
+	end
+	if not data then
+		player:Kick("Impossible de charger ta sauvegarde 😢 Réessaie dans quelques minutes !")
+		return
+	end
 
 	profiles[player] = {
 		Data = data,
 		Passes = { VIP = false, TurboFeeder = false },
 		Dirty = true,
+		CanSave = canSave,
+		Leaving = false,
+		FinalSaveStarted = false,
+		Saving = false,
 	}
 	createLeaderstats(player)
 	updateLeaderstats(player, data)
@@ -241,16 +410,42 @@ local function onPlayerAdded(player: Player)
 end
 
 local function onPlayerRemoving(player: Player)
-	if not profiles[player] then
+	local profile = profiles[player]
+	if not profile then
 		return
 	end
+	profile.Leaving = true
+
 	for _, callback in removingCallbacks do
 		local ok, err = pcall(callback, player)
 		if not ok then
 			warn("[PlayerData] Erreur pendant le départ de", player.Name, err)
 		end
 	end
+
+	-- Dernière sauvegarde (sauf si BindToClose l'a déjà lancée)
+	if not profile.FinalSaveStarted then
+		profile.FinalSaveStarted = true
+		saveProfile(player, profile, "départ")
+	end
 	profiles[player] = nil
+end
+
+-- Quand le serveur s'arrête (mise à jour, dernier joueur parti...) : on sauvegarde tout le monde.
+-- Roblox nous laisse environ 30 secondes.
+local function onServerClose()
+	for player, profile in profiles do
+		if not profile.FinalSaveStarted then
+			profile.FinalSaveStarted = true
+			task.spawn(saveProfile, player, profile, "fermeture du serveur")
+		end
+	end
+	-- On attend que toutes les sauvegardes soient finies (25 s maximum)
+	local deadline = os.clock() + 25
+	task.wait(0.1)
+	while activeSaves > 0 and os.clock() < deadline do
+		task.wait(0.1)
+	end
 end
 
 function PlayerDataService.start()
@@ -266,6 +461,23 @@ function PlayerDataService.start()
 	for _, player in Players:GetPlayers() do
 		task.spawn(onPlayerAdded, player)
 	end
+
+	game:BindToClose(onServerClose)
+
+	-- Sauvegarde automatique toutes les 2 minutes (Config.DataStore.AutoSaveInterval)
+	task.spawn(function()
+		while true do
+			task.wait(Config.DataStore.AutoSaveInterval)
+			-- (on fait une copie de la liste, car des joueurs peuvent arriver ou partir pendant la boucle)
+			for _, player in PlayerDataService.getLoadedPlayers() do
+				local profile = profiles[player]
+				if profile and not profile.Leaving then
+					task.spawn(saveProfile, player, profile, "automatique")
+					task.wait(0.5) -- on étale un peu les sauvegardes
+				end
+			end
+		end
+	end)
 
 	-- 10 fois par seconde : on envoie les changements aux clients
 	local stateEvent = Remotes.event("StateUpdate")
