@@ -1,0 +1,1764 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#060914">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="DevisVoix">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<style>:root { color-scheme: dark; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); } body { margin: 0; } img { max-width: 100%; } [hidden] { display: none !important; }</style>
+</head>
+<body>
+<title>DevisVoix</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Layout : une appli de téléphone (colonne étroite), barre d'onglets en verre en bas, le devis comme une vraie feuille blanche.
+   Univers unique, sombre et premium : bleu nuit, cartes en verre dépoli, accent dégradé violet → bleu. */
+:root {
+  --bg: #060914;          /* nuit */
+  --app: #0a0f1f;
+  --glass: rgba(255, 255, 255, .055);
+  --glass-2: rgba(255, 255, 255, .09);
+  --card: rgba(255, 255, 255, .055);
+  --ink: #eef1f9;
+  --soft: #97a1bb;
+  --line: rgba(255, 255, 255, .1);
+  --accent: #8f7cff;      /* violet */
+  --accent-2: #3d8bff;    /* bleu */
+  --grad: linear-gradient(135deg, #9a6bff 0%, #5b7cff 55%, #2fa0ff 100%);
+  --accent-ink: #ffffff;
+  --accent-soft: rgba(143, 124, 255, .16);
+  --warn: #ffc56b;
+  --warn-soft: rgba(255, 197, 107, .12);
+  --ok: #5fe0a6;
+  --ok-soft: rgba(95, 224, 166, .12);
+  --paper: #ffffff;
+  --paper-ink: #141a2b;
+  --display: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --body: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--ink); font: 400 16px/1.5 var(--body); -webkit-font-smoothing: antialiased; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--app); }
+button, input, select, textarea { font: inherit; color: inherit; }
+h1, h2, h3 { font-family: var(--display); font-weight: 800; line-height: 1.08; margin: 0; text-wrap: balance; letter-spacing: -.025em; }
+p { margin: 0; }
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+.app { max-width: 520px; min-height: 100%; margin: 0 auto; background: var(--app); display: flex; flex-direction: column; }
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--app); border-bottom: 1px solid var(--line);
+  padding-block: 12px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand-mark { width: 34px; height: 34px; border-radius: 10px; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; }
+.brand-mark svg { width: 20px; height: 20px; }
+.brand b { font-family: var(--display); font-weight: 800; font-size: 1.2rem; letter-spacing: -.02em; }
+.chip { font-size: .72rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; padding: 4px 9px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); white-space: nowrap; }
+.chip.warn { background: var(--warn-soft); color: var(--warn); }
+.chip.ok { background: var(--ok-soft); color: var(--ok); }
+
+main { flex: 1; padding-block: 18px 110px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; align-content: start; }
+.view { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; min-width: 0; }
+.lead { color: var(--soft); }
+.section-title { font-size: .76rem; font-weight: 650; letter-spacing: .12em; text-transform: uppercase; color: var(--soft); }
+
+/* Boutons */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid transparent; border-radius: 14px; padding: 14px 18px; font-weight: 650; cursor: pointer; transition: transform .15s, background-color .2s, border-color .2s; text-decoration: none; }
+.btn:active { transform: scale(.98); }
+.btn:focus-visible, .tab:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.btn-main { background: var(--accent); color: var(--accent-ink); }
+.btn-ghost { background: var(--card); border-color: var(--line); }
+.btn-block { width: 100%; }
+.btn-big { padding: 18px; font-size: 1.08rem; border-radius: 16px; }
+.btn[disabled] { opacity: .55; cursor: wait; }
+.btn svg { width: 20px; height: 20px; flex: none; }
+.row-btns { display: flex; flex-wrap: wrap; gap: 10px; }
+.row-btns .btn { flex: 1 1 140px; }
+
+/* Zone de dictée */
+.dictate { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 16px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+.dictate label { font-weight: 650; }
+.dictate textarea { width: 100%; min-height: 150px; resize: vertical; border: 1px solid var(--line); border-radius: 14px; padding: 14px; background: var(--app); line-height: 1.5; }
+.rec-btn { display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; padding: 18px; border-radius: 18px; border: 1px solid var(--line); background: var(--glass-2); color: var(--ink); font: inherit; font-size: 1.05rem; cursor: pointer; }
+.rec-dot { width: 16px; height: 16px; border-radius: 50%; background: #ff5d6c; box-shadow: 0 0 0 0 rgba(255, 93, 108, .6); flex: none; }
+.rec-btn.on { border-color: #ff5d6c; background: rgba(255, 93, 108, .12); }
+.rec-btn.on .rec-dot { display: none; }
+.bars { display: none; align-items: center; gap: 3px; height: 22px; flex: none; }
+.rec-btn.on .bars { display: inline-flex; }
+.bars i { width: 4px; height: 100%; border-radius: 2px; background: #ff5d6c; animation: bar 0.9s ease-in-out infinite; }
+.bars i:nth-child(2) { animation-delay: .15s; } .bars i:nth-child(3) { animation-delay: .3s; } .bars i:nth-child(4) { animation-delay: .45s; } .bars i:nth-child(5) { animation-delay: .6s; }
+@keyframes bar { 0%, 100% { transform: scaleY(.3); } 50% { transform: scaleY(1); } }
+.rec-status { font-size: .88rem; color: var(--warn); background: var(--warn-soft); border-radius: 12px; padding: 10px 12px; margin: 0; }
+@keyframes recpulse { 0% { box-shadow: 0 0 0 0 rgba(255, 93, 108, .6); } 100% { box-shadow: 0 0 0 14px rgba(255, 93, 108, 0); } }
+.mic-hint { display: flex; gap: 10px; align-items: flex-start; font-size: .9rem; color: var(--soft); }
+.mic-hint .mic { flex: none; width: 34px; height: 34px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; }
+.mic-hint .mic svg { width: 18px; height: 18px; }
+.examples { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+.examples button { flex: none; border: 1px solid var(--line); background: var(--card); border-radius: 999px; padding: 8px 14px; font-size: .88rem; cursor: pointer; white-space: nowrap; }
+.examples button:hover { border-color: var(--accent); color: var(--accent); }
+.mode { font-size: .85rem; color: var(--soft); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+.steps { display: grid; gap: 10px; counter-reset: s; }
+.steps li { list-style: none; display: grid; grid-template-columns: 30px 1fr; gap: 10px; align-items: start; color: var(--soft); font-size: .93rem; counter-increment: s; }
+.steps li::before { content: counter(s); width: 30px; height: 30px; border-radius: 50%; background: var(--card); border: 1px solid var(--line); display: grid; place-items: center; font-family: var(--mono); font-size: .85rem; color: var(--ink); }
+.steps { margin: 0; padding: 0; }
+
+/* Accueil : le gros bouton */
+.devis-btn { justify-self: center; width: min(230px, 68vw); aspect-ratio: 1; max-width: 100%; border-radius: 50%; border: 0; background: var(--accent); color: var(--accent-ink);
+  display: grid; place-items: center; align-content: center; gap: 4px; cursor: pointer; position: relative; margin-block: 14px; box-shadow: 0 26px 50px -26px var(--accent); transition: transform .15s; }
+.devis-btn:active { transform: scale(.97); }
+.devis-btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 6px; }
+.devis-btn svg { width: 58px; height: 58px; }
+.devis-btn b { font-family: var(--display); font-size: 1.9rem; font-weight: 800; letter-spacing: -.01em; }
+.devis-btn::after { content: ""; position: absolute; inset: -10px; border-radius: 50%; border: 2px solid var(--accent); animation: ring 2.4s ease-out infinite; pointer-events: none; }
+@keyframes ring { from { transform: scale(.94); opacity: .5; } to { transform: scale(1.14); opacity: 0; } }
+.back { justify-self: start; border: 0; background: none; color: var(--accent); font-weight: 650; padding: 4px 0; cursor: pointer; }
+/* Connexion et compte */
+.loading { display: grid; justify-items: center; gap: 14px; padding: 80px 0; color: var(--soft); text-align: center; }
+.loading .brand-mark { width: 56px; height: 56px; border-radius: 16px; }
+.loading .brand-mark svg { width: 30px; height: 30px; }
+.loading .dots { display: inline-flex; gap: 4px; }
+.loading .dots i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; animation: blink 1s infinite; }
+.loading .dots i:nth-child(2) { animation-delay: .15s; }
+.loading .dots i:nth-child(3) { animation-delay: .3s; }
+.account { display: flex; align-items: center; gap: 14px; }
+.account img { width: 52px; height: 52px; border-radius: 50%; flex: none; background: var(--accent-soft); }
+.account b { display: block; font-size: 1.1rem; }
+.account span { color: var(--soft); font-size: .9rem; }
+.guest-mark { width: 52px; height: 52px; border-radius: 50%; flex: none; display: grid; place-items: center; background: var(--warn-soft); color: var(--warn); }
+.guest-mark svg { width: 26px; height: 26px; }
+
+/* Choix du métier */
+.metiers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.metier { text-align: left; border: 1px solid var(--line); background: var(--card); border-radius: 16px; padding: 14px; display: grid; gap: 2px; cursor: pointer; min-width: 0; }
+.metier b { font-size: 1.02rem; }
+.metier span { font-size: .8rem; color: var(--soft); }
+.metier[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.metier-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+/* Écran d'attente */
+.thinking { display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: var(--accent-soft); color: var(--accent); border-radius: 14px; font-weight: 600; }
+.thinking .dots { display: inline-flex; gap: 4px; }
+.thinking .dots i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; animation: blink 1s infinite; }
+.thinking .dots i:nth-child(2) { animation-delay: .15s; }
+.thinking .dots i:nth-child(3) { animation-delay: .3s; }
+@keyframes blink { 50% { opacity: .25; } }
+.error { padding: 12px 14px; border-radius: 12px; background: var(--warn-soft); color: var(--warn); font-size: .92rem; }
+
+/* Éditeur de devis */
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 16px; display: grid; gap: 12px; min-width: 0; }
+.field { display: grid; gap: 5px; font-size: .86rem; color: var(--soft); min-width: 0; }
+.field input, .field select, .field textarea { width: 100%; border: 1px solid var(--line); border-radius: 12px; padding: 11px 12px; background: var(--app); color: var(--ink); font-size: 1rem; min-width: 0; }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.line { border: 1px solid var(--line); border-radius: 14px; padding: 12px; display: grid; gap: 10px; background: var(--app); }
+.line.flag { border-color: var(--warn); background: var(--warn-soft); }
+.line .flag-note { font-size: .8rem; color: var(--warn); font-weight: 600; }
+.line-top { display: flex; gap: 8px; align-items: start; }
+.line-top input { flex: 1; min-width: 0; border: 1px solid var(--line); border-radius: 10px; padding: 9px 10px; background: var(--card); font-weight: 600; }
+.icon-btn { flex: none; width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); display: grid; place-items: center; cursor: pointer; color: var(--soft); }
+.icon-btn svg { width: 18px; height: 18px; }
+.line-nums { display: grid; grid-template-columns: 72px 84px minmax(0, 1fr); gap: 8px; align-items: end; }
+.line-nums label { display: grid; gap: 3px; font-size: .74rem; color: var(--soft); }
+.line-nums input { width: 100%; border: 1px solid var(--line); border-radius: 10px; padding: 9px 8px; background: var(--card); color: var(--ink); font-family: var(--mono); font-size: .95rem; }
+.line-total { grid-column: 1 / -1; font-family: var(--mono); font-weight: 600; text-align: right; white-space: nowrap; }
+.totals { display: grid; gap: 6px; }
+.totals div { display: flex; justify-content: space-between; gap: 12px; }
+.totals .ttc { font-size: 1.25rem; font-weight: 750; border-top: 1px solid var(--line); padding-top: 8px; }
+.sticky-actions { position: sticky; bottom: calc(76px + env(safe-area-inset-bottom, 0px)); z-index: 4; display: grid; gap: 8px; }
+
+/* Aperçu du devis : une vraie feuille */
+.paper { background: var(--paper); color: var(--paper-ink); border-radius: 6px; box-shadow: 0 18px 40px -26px rgba(10, 20, 40, .55); padding: 22px 18px; display: grid; gap: 14px; font-size: .82rem; line-height: 1.45; overflow-x: auto; }
+.paper h3 { font-size: 1.5rem; letter-spacing: .02em; }
+.paper .head { display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+.paper .who b { display: block; font-size: .95rem; }
+.paper .muted { color: #5b6676; }
+.paper table { width: 100%; border-collapse: collapse; font-size: .8rem; }
+.paper th { text-align: left; font-weight: 650; border-bottom: 2px solid #18202b; padding: 6px 4px; }
+.paper td { border-bottom: 1px solid #d9dee6; padding: 6px 4px; vertical-align: top; }
+.paper td.r, .paper th.r { text-align: right; white-space: nowrap; font-family: var(--mono); }
+.paper .tot { margin-left: auto; min-width: 200px; display: grid; gap: 3px; }
+.paper .tot div { display: flex; justify-content: space-between; gap: 16px; }
+.paper .tot .big { font-weight: 750; font-size: .95rem; border-top: 2px solid #18202b; padding-top: 4px; }
+.paper .legal { font-size: .7rem; color: #5b6676; display: grid; gap: 3px; }
+.paper .sign { border: 1px dashed #9aa5b6; border-radius: 6px; padding: 10px; min-height: 70px; font-size: .75rem; color: #5b6676; }
+
+/* Listes */
+.list { display: grid; gap: 10px; }
+.item { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px; display: grid; gap: 6px; text-align: left; cursor: pointer; width: 100%; }
+.item-top { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+.item b { font-weight: 650; }
+.empty { text-align: center; color: var(--soft); padding: 30px 10px; border: 1px dashed var(--line); border-radius: 16px; }
+.price-row { display: grid; grid-template-columns: minmax(0, 1fr) 70px 90px 40px; gap: 8px; align-items: center; }
+.price-row input { width: 100%; min-width: 0; border: 1px solid var(--line); border-radius: 10px; padding: 9px 8px; background: var(--app); }
+.price-row input.num { text-align: right; }
+.price-head { font-size: .74rem; color: var(--soft); }
+.check { display: flex; gap: 10px; align-items: flex-start; font-size: .95rem; color: var(--ink); }
+.check input { width: 22px; height: 22px; margin-top: 2px; flex: none; accent-color: var(--accent); }
+.example-note { font-size: .85rem; color: var(--warn); background: var(--warn-soft); padding: 10px 12px; border-radius: 12px; }
+.toast { position: fixed; left: 50%; bottom: calc(92px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--app); padding: 10px 16px; border-radius: 999px; font-size: .9rem; z-index: 20; }
+
+/* Onglets */
+.tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; display: flex; justify-content: center; background: var(--app); border-top: 1px solid var(--line);
+  padding-bottom: env(safe-area-inset-bottom, 0px); padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px); }
+.tabs-inner { width: 100%; max-width: 520px; display: grid; grid-template-columns: repeat(4, 1fr); }
+.tab { border: 0; background: none; padding: 9px 4px 10px; display: grid; justify-items: center; gap: 3px; font-size: .74rem; color: var(--soft); cursor: pointer; }
+.tab svg { width: 22px; height: 22px; }
+.tab[aria-current="page"] { color: var(--accent); font-weight: 650; }
+
+/* ---------- Habillage premium ---------- */
+body { background:
+  radial-gradient(700px 500px at 15% -10%, rgba(143, 124, 255, .28), transparent 60%),
+  radial-gradient(600px 500px at 110% 60%, rgba(47, 160, 255, .18), transparent 60%),
+  var(--bg); background-attachment: fixed; }
+.app { background: transparent; }
+body::before { background: rgba(10, 15, 31, .8); }
+.top { background: rgba(10, 15, 31, .65); -webkit-backdrop-filter: blur(18px) saturate(140%); backdrop-filter: blur(18px) saturate(140%); border-bottom-color: var(--line); }
+.brand-mark { background: var(--grad); box-shadow: 0 6px 18px -6px rgba(143, 124, 255, .8); }
+.chip { background: var(--glass-2); color: #c9c2ff; border: 1px solid var(--line); }
+.chip.ok { background: var(--ok-soft); color: var(--ok); border-color: transparent; }
+.chip.warn { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
+.lead, .section-title { color: var(--soft); }
+.section-title { color: #b3abff; }
+
+/* Cartes en verre */
+.card, .dictate, .item, .metier, .line, .examples button, .btn-ghost, .icon-btn, .steps li::before {
+  background: var(--glass); border-color: var(--line); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+.card, .dictate { border-radius: 22px; box-shadow: 0 20px 40px -30px rgba(0, 0, 0, .8), inset 0 1px 0 rgba(255, 255, 255, .06); }
+.item, .metier { transition: transform .25s, border-color .25s, background-color .25s; }
+.item:hover, .metier:hover { transform: translateY(-2px); border-color: rgba(143, 124, 255, .55); background: var(--glass-2); }
+.metier[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.line.flag { background: var(--warn-soft); border-color: rgba(255, 197, 107, .5); }
+
+/* Champs */
+.dictate textarea, .field input, .field select, .field textarea, .line-top input, .line-nums input, .price-row input {
+  background: rgba(0, 0, 0, .25); border-color: var(--line); color: var(--ink); }
+.dictate textarea:focus, .field input:focus, .field select:focus, .line-top input:focus, .line-nums input:focus, .price-row input:focus {
+  outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+select option { background: #0f1528; color: var(--ink); }
+::placeholder { color: #67708a; }
+
+/* Boutons */
+.btn-main { background: var(--grad); color: #fff; box-shadow: 0 14px 30px -14px rgba(120, 110, 255, .9); }
+.btn-main:hover { filter: brightness(1.08); }
+.btn-ghost { color: var(--ink); }
+.btn-ghost:hover { border-color: rgba(143, 124, 255, .55); }
+.back { color: #b3abff; }
+
+/* Le gros bouton « Devis » : dégradé, halo lumineux */
+.devis-btn { background: var(--grad); box-shadow: 0 30px 70px -20px rgba(120, 110, 255, .75), inset 0 2px 0 rgba(255, 255, 255, .25), inset 0 -10px 30px rgba(20, 20, 80, .25); }
+.devis-btn::before { content: ""; position: absolute; inset: -28px; border-radius: 50%; background: radial-gradient(circle, rgba(143, 124, 255, .35), transparent 65%); z-index: -1; animation: glow 3.2s ease-in-out infinite; }
+.devis-btn::after { border-color: rgba(167, 150, 255, .7); }
+.devis-btn { isolation: isolate; }
+@keyframes glow { 50% { transform: scale(1.08); opacity: .7; } }
+
+/* Barre d'onglets en verre */
+.tabs { background: rgba(10, 15, 31, .72); -webkit-backdrop-filter: blur(18px) saturate(140%); backdrop-filter: blur(18px) saturate(140%); border-top-color: var(--line); }
+.tab { color: #7d86a0; }
+.tab[aria-current="page"] { color: #fff; }
+.tab[aria-current="page"] svg { color: #b3abff; filter: drop-shadow(0 0 8px rgba(143, 124, 255, .9)); }
+
+/* Divers */
+.mic-hint .mic { background: var(--accent-soft); color: #c9c2ff; }
+.thinking { background: var(--accent-soft); color: #d6d0ff; }
+.error, .example-note { background: var(--warn-soft); color: var(--warn); border: 1px solid rgba(255, 197, 107, .25); }
+.empty { border-color: var(--line); background: rgba(255, 255, 255, .02); }
+.toast { background: rgba(255, 255, 255, .92); color: #0a0f1f; }
+.guest-mark { background: var(--warn-soft); }
+.paper { box-shadow: 0 30px 60px -30px rgba(0, 0, 0, .9); border-radius: 12px; }
+.totals .ttc { border-top-color: var(--line); }
+.totals .ttc .num { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+/* Statuts, suivi, signature, liste */
+.chip.accent { background: var(--accent-soft); color: #c9c2ff; border-color: transparent; }
+.chip.blue { background: rgba(61, 139, 255, .16); color: #8fc0ff; border-color: transparent; }
+.flag-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.link-btn { border: 0; background: none; color: #c9c2ff; font-weight: 650; font-size: .82rem; cursor: pointer; padding: 2px 0; text-decoration: underline; text-underline-offset: 3px; }
+.seg { display: inline-flex; padding: 4px; gap: 4px; border-radius: 999px; background: var(--glass); border: 1px solid var(--line); }
+.seg button { border: 0; background: none; color: var(--soft); padding: 8px 18px; border-radius: 999px; font-weight: 650; cursor: pointer; }
+.seg button[aria-selected="true"] { background: var(--grad); color: #fff; }
+.statuts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.st-btn { border: 1px solid var(--line); background: var(--glass); color: var(--ink); border-radius: 12px; padding: 11px 6px; font-weight: 650; cursor: pointer; }
+.st-btn[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: #fff; }
+.st-btn[data-st="Accepté"][aria-pressed="true"] { border-color: var(--ok); background: var(--ok-soft); }
+.st-btn[data-st="Refusé"][aria-pressed="true"] { border-color: var(--warn); background: var(--warn-soft); }
+.pad { width: 100%; height: auto; aspect-ratio: 600 / 220; background: #fff; border-radius: 14px; touch-action: none; cursor: crosshair; display: block; margin-block: 8px; }
+.sign.signed { display: grid; gap: 4px; }
+.sign.signed img { max-width: 220px; height: auto; }
+.btn.danger { color: #ff8f8f; }
+.btn.danger[data-confirm] { border-color: #ff8f8f; background: rgba(255, 120, 120, .12); }
+.search { width: 100%; border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; background: rgba(0, 0, 0, .25); color: var(--ink); }
+.search:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+.filters { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; }
+.filters button { flex: none; border: 1px solid var(--line); background: var(--glass); color: var(--soft); border-radius: 999px; padding: 7px 14px; font-size: .88rem; cursor: pointer; }
+.filters button[aria-pressed="true"] { background: var(--grad); color: #fff; border-color: transparent; }
+#preview-wrap { scroll-margin-top: 80px; }
+.write-btn { justify-self: center; display: inline-flex; align-items: center; gap: 10px; border: 1px solid var(--line); background: var(--glass); color: var(--ink); border-radius: 999px; padding: 12px 22px; font-weight: 650; cursor: pointer; margin-top: -4px; }
+.write-btn svg, .seg button svg, .missing .btn svg { width: 20px; height: 20px; }
+.seg button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+body[data-input-mode="text"] .voice-only, body[data-input-mode="text"] #rec { display: none !important; }
+.missing { border: 1px solid rgba(255, 197, 107, .45); background: var(--warn-soft); border-radius: 18px; padding: 16px; display: grid; gap: 12px; }
+.missing > b { color: var(--warn); font-size: 1.05rem; }
+.missing ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.missing li { display: grid; gap: 6px; }
+.missing li span::before { content: "• "; color: var(--warn); }
+.missing input { width: 100%; border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; background: rgba(0, 0, 0, .25); color: var(--ink); }
+.missing input.need { border-color: var(--warn); box-shadow: 0 0 0 3px var(--warn-soft); }
+.ai-note { font-size: .82rem; color: var(--soft); border-left: 3px solid var(--accent); padding: 4px 0 4px 10px; }
+.legal-hint { font-size: .82rem; color: var(--soft); line-height: 1.5; }
+.seg-full { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
+.seg button:disabled, .st-btn:disabled { opacity: .6; cursor: not-allowed; }
+.invoice-form { display: grid; gap: 8px; }
+.card input:disabled, .card select:disabled { opacity: .75; }
+.paper .retract { border-top: 2px dashed #9aa5b6; padding-top: 12px; display: grid; gap: 4px; font-size: .74rem; }
+.paper .retract b { font-size: .9rem; }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.stats div { background: var(--glass); border: 1px solid var(--line); border-radius: 16px; padding: 12px 10px; display: grid; gap: 2px; min-width: 0; }
+.stats b { font-size: 1.15rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.stats span { font-size: .74rem; color: var(--soft); }
+.item.notice { border-color: rgba(255, 197, 107, .35); }
+.item.notice b { color: var(--warn); }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+@media (max-width: 380px) { .line-nums { grid-template-columns: 60px 64px minmax(0, 1fr); } .line-total { grid-column: 1 / -1; padding-bottom: 0; } }
+</style>
+
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></span>
+      <b>DevisVoix</b>
+    </div>
+    <span class="chip">Bêta</span>
+  </header>
+
+  <main id="main">
+    <!-- Connexion au compte (quelques secondes au démarrage) -->
+    <section class="view" id="v-loading">
+      <div class="loading"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></span>
+        <p>Connexion à votre compte <span class="dots"><i></i><i></i><i></i></span></p></div>
+    </section>
+
+    <!-- 0. Accueil : un seul gros bouton -->
+    <section class="view" id="v-home" hidden>
+      <div>
+        <p class="section-title" id="home-metier"></p>
+        <h1 style="font-size:2rem;margin-top:4px" id="home-hello">Nouveau devis</h1>
+        <p class="lead" style="margin-top:6px">Appuyez sur le bouton et dites ce que vous avez à faire, ou écrivez-le.</p>
+      </div>
+      <button class="devis-btn" type="button" id="big-devis">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+        <b>Devis</b>
+      </button>
+      <button class="write-btn" type="button" id="home-write"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg>Écrire mon devis</button>
+      <div>
+        <div class="list" id="home-extra" style="margin-bottom:18px"></div>
+        <p class="section-title" style="margin-bottom:10px">Derniers devis</p>
+        <div class="list" id="recent"></div>
+      </div>
+    </section>
+
+    <!-- Choix du métier (au premier lancement, ou depuis « Entreprise ») -->
+    <section class="view" id="v-pick" hidden>
+      <div>
+        <h1 style="font-size:2rem">Quel est votre métier ?</h1>
+        <p class="lead" style="margin-top:6px">L'appli prépare une liste de prix de départ, des exemples et les bonnes mentions pour vos devis. <span id="pick-remember"></span></p>
+      </div>
+      <p class="example-note" id="pick-warn" hidden>Changer de métier remplace votre liste de prix par celle du nouveau métier.</p>
+      <div class="metiers" id="metiers"></div>
+    </section>
+
+    <!-- 1. Nouveau devis -->
+    <section class="view" id="v-new" hidden>
+      <button class="back" type="button" id="back-home">← Accueil</button>
+      <div>
+        <h1 style="font-size:2rem">Dictez votre devis</h1>
+        <p class="lead" style="margin-top:6px">Décrivez le travail comme vous le diriez à un collègue. L'appli prépare le devis avec vos prix.</p>
+      </div>
+      <div class="dictate">
+        <div class="seg seg-full" role="tablist" aria-label="Façon de donner les informations">
+          <button type="button" role="tab" data-mode="voice" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>Note vocale</button>
+          <button type="button" role="tab" data-mode="text" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg>Écrire</button>
+        </div>
+        <label for="dict">Ce que vous avez à faire</label>
+        <textarea id="dict" placeholder="Ex. : Devis pour Madame Martin, 12 rue des Lilas à Toulon. Ce qu'il faut faire, les quantités et le temps passé."></textarea>
+        <button class="rec-btn" id="rec" type="button" hidden>
+          <span class="rec-dot" aria-hidden="true"></span><span class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span><b id="rec-label">Appuyer pour parler</b>
+        </button>
+        <p class="rec-status voice-only" id="rec-status" hidden></p>
+        <div class="mic-hint voice-only" id="kbd-hint">
+          <span class="mic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></span>
+          <span>Touchez la zone de texte, puis : sur iPhone, le <b>micro du clavier</b> ; sur Mac, appuyez <b>deux fois sur la touche fn</b> (ou 🌐). Parlez, le texte s'écrit tout seul.</span>
+        </div>
+        <div>
+          <p class="section-title" style="margin-bottom:8px">Essayer avec un exemple</p>
+          <div class="examples" id="examples"></div>
+        </div>
+        <button class="btn btn-main btn-big btn-block" id="go" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.8 4.2L18 9l-4.2 1.8L12 15l-1.8-4.2L6 9l4.2-1.8z"/><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9z"/></svg>
+          Créer le devis
+        </button>
+        <div id="status" hidden></div>
+        <div class="missing" id="missing" hidden></div>
+        <p class="mode" id="mode"></p>
+      </div>
+      <div>
+        <p class="section-title" style="margin-bottom:10px">Comment ça marche</p>
+        <ol class="steps">
+          <li>Vous dictez : le client, ce qu'il faut faire, les quantités, le temps passé.</li>
+          <li>L'appli reconnaît vos prestations et prend <b>vos prix</b> (onglet « Mes prix »).</li>
+          <li>Vous vérifiez, corrigez une ligne si besoin, puis vous téléchargez le PDF.</li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 2. Le devis -->
+    <section class="view" id="v-edit" hidden></section>
+
+    <!-- 3. Mes devis -->
+    <section class="view" id="v-list" hidden></section>
+
+    <!-- 4. Mes prix -->
+    <section class="view" id="v-prices" hidden></section>
+
+    <!-- 5. Mon entreprise -->
+    <section class="view" id="v-company" hidden></section>
+  </main>
+</div>
+
+<nav class="tabs" aria-label="Navigation">
+  <div class="tabs-inner">
+    <button class="tab" type="button" data-tab="home" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>Devis</button>
+    <button class="tab" type="button" data-tab="list"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></svg>Mes devis</button>
+    <button class="tab" type="button" data-tab="prices"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.5"/></svg>Mes prix</button>
+    <button class="tab" type="button" data-tab="company"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>Compte</button>
+  </div>
+</nav>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+(function () {
+  // ---------- Les métiers : prix de départ, exemples et règles (des exemples, à remplacer par les vrais prix) ----------
+  const TVA_BTP = [
+    { v: 10, label: "10 % – Rénovation d'un logement de plus de 2 ans" },
+    { v: 5.5, label: "5,5 % – Travaux d'amélioration énergétique" },
+    { v: 20, label: "20 % – Neuf, locaux professionnels ou fourniture seule" },
+  ];
+  const TVA_STD = [
+    { v: 20, label: "20 % – Taux normal" },
+    { v: 10, label: "10 % – Taux intermédiaire (ex. restauration)" },
+    { v: 5.5, label: "5,5 % – Taux réduit" },
+  ];
+  const MO = (pu, nom = "Main-d'œuvre") => ({ id: "mo", nom, unite: "h", pu, mots: ["main d'oeuvre", "main-d'oeuvre"] });
+  const DEP = { id: "dep", nom: "Déplacement", unite: "forfait", pu: 35, mots: ["deplacement"] };
+  const TEMPLATES = {
+    plombier: {
+      label: "Plombier", metier: "Plombier chauffagiste", btp: true, tva: 10, objet: "Travaux de plomberie", entreprise: "Plomberie Durand",
+      catalog: [MO(50), DEP,
+        { id: "ce200", nom: "Chauffe-eau électrique 200 L", unite: "u", pu: 450, mots: ["chauffe-eau", "chauffe eau", "cumulus", "ballon d'eau chaude", "ballon"] },
+        { id: "ce100", nom: "Chauffe-eau électrique 100 L", unite: "u", pu: 350, mots: ["chauffe-eau 100", "chauffe eau 100", "ballon 100", "100 litres"] },
+        { id: "gs", nom: "Groupe de sécurité", unite: "u", pu: 35, mots: ["groupe de securite"] },
+        { id: "evac", nom: "Évacuation de l'ancien appareil", unite: "forfait", pu: 40, mots: ["evacuation", "enlevement", "recyclage"] },
+        { id: "mitl", nom: "Mitigeur lavabo / évier", unite: "u", pu: 85, mots: ["mitigeur lavabo", "mitigeur evier", "robinet lavabo", "robinet evier", "mitigeur cuisine"] },
+        { id: "mitd", nom: "Mitigeur douche thermostatique", unite: "u", pu: 160, mots: ["thermostatique", "mitigeur douche", "robinet douche", "mitigeur de douche"] },
+        { id: "wc", nom: "WC suspendu complet (bâti + cuvette)", unite: "u", pu: 420, mots: ["wc suspendu", "toilette suspendue"] },
+        { id: "meca", nom: "Mécanisme de chasse d'eau", unite: "u", pu: 45, mots: ["mecanisme", "chasse d'eau"] },
+        { id: "flex", nom: "Flexible inox", unite: "u", pu: 12, mots: ["flexible"] },
+        { id: "siph", nom: "Siphon", unite: "u", pu: 18, mots: ["siphon"] },
+        { id: "fuite", nom: "Recherche de fuite", unite: "forfait", pu: 120, mots: ["recherche de fuite", "fuite"] },
+        { id: "deb", nom: "Débouchage de canalisation", unite: "forfait", pu: 110, mots: ["debouchage", "deboucher", "canalisation bouchee"] },
+        { id: "four", nom: "Raccords et petites fournitures", unite: "forfait", pu: 15, mots: ["fourniture", "raccord", "petit materiel"] }],
+      examples: [
+        { label: "Chauffe-eau", text: "Devis pour Madame Martin, 12 rue des Lilas à Toulon. Remplacement du chauffe-eau 200 litres, compter 3 heures de main-d'œuvre, plus le groupe de sécurité et l'évacuation de l'ancien." },
+        { label: "Salle de bain", text: "Devis pour Monsieur Benali, 4 impasse des Oliviers à Hyères. Pose d'un mitigeur douche thermostatique et de deux mitigeurs lavabo, remplacement du siphon, 4 heures de travail, déplacement et petites fournitures." },
+        { label: "Fuite + WC", text: "Devis pour Madame Roux, 27 avenue Foch à La Seyne. Recherche de fuite sous l'évier, changement du mécanisme de chasse d'eau, deux flexibles, 1 heure et demie de main-d'œuvre et le déplacement." }],
+    },
+    electricien: {
+      label: "Électricien", metier: "Électricien", btp: true, tva: 10, objet: "Travaux d'électricité", entreprise: "Élec Services Morel",
+      catalog: [MO(50), DEP,
+        { id: "prise", nom: "Prise de courant (fourniture et pose)", unite: "u", pu: 45, mots: ["prise"] },
+        { id: "inter", nom: "Interrupteur (fourniture et pose)", unite: "u", pu: 40, mots: ["interrupteur"] },
+        { id: "spot", nom: "Spot LED encastrable", unite: "u", pu: 35, mots: ["spot"] },
+        { id: "tab", nom: "Tableau électrique complet", unite: "u", pu: 650, mots: ["tableau"] },
+        { id: "disj", nom: "Disjoncteur", unite: "u", pu: 30, mots: ["disjoncteur"] },
+        { id: "cable", nom: "Câble électrique", unite: "ml", pu: 3, mots: ["cable"] },
+        { id: "rad", nom: "Radiateur électrique à inertie", unite: "u", pu: 380, mots: ["radiateur"] },
+        { id: "diag", nom: "Diagnostic électrique", unite: "forfait", pu: 120, mots: ["diagnostic"] }],
+      examples: [
+        { label: "Salon", text: "Devis pour Monsieur Garcia, 15 rue Pasteur à Marseille. Installation de quatre prises de courant et deux interrupteurs dans le salon, six spots LED encastrables, 5 heures de main-d'œuvre et le déplacement." },
+        { label: "Tableau", text: "Devis pour Madame Faure, 2 avenue Jean Jaurès à Avignon. Remplacement du tableau électrique, trois disjoncteurs, 20 mètres de câble et 6 heures de travail." }],
+    },
+    peintre: {
+      label: "Peintre", metier: "Peintre en bâtiment", btp: true, tva: 10, objet: "Travaux de peinture", entreprise: "Peinture Lefort",
+      catalog: [MO(40), DEP,
+        { id: "murs", nom: "Peinture des murs (2 couches)", unite: "m²", pu: 22, mots: ["peinture des mur", "mur"] },
+        { id: "plaf", nom: "Peinture du plafond", unite: "m²", pu: 25, mots: ["plafond"] },
+        { id: "prep", nom: "Préparation des supports (rebouchage, ponçage)", unite: "m²", pu: 8, mots: ["preparation", "rebouchage", "poncage"] },
+        { id: "pp", nom: "Pose de papier peint", unite: "m²", pu: 20, mots: ["papier peint"] },
+        { id: "porte", nom: "Peinture de porte", unite: "u", pu: 70, mots: ["porte"] },
+        { id: "fac", nom: "Ravalement de façade", unite: "m²", pu: 35, mots: ["facade", "ravalement"] },
+        { id: "prot", nom: "Protection et nettoyage du chantier", unite: "forfait", pu: 60, mots: ["protection", "bache"] }],
+      examples: [
+        { label: "Salon", text: "Devis pour Madame Lefèvre, 3 allée des Tilleuls à Nice. Peinture des murs du salon, 45 m², plafond 20 m², préparation des murs 45 m², deux portes et la protection du chantier." }],
+    },
+    paysagiste: {
+      label: "Paysagiste", metier: "Paysagiste", btp: false, tva: 20, objet: "Entretien du jardin", entreprise: "Jardins Petit",
+      catalog: [MO(40), DEP,
+        { id: "tonte", nom: "Tonte de pelouse", unite: "m²", pu: 0.5, mots: ["tonte", "pelouse"] },
+        { id: "haie", nom: "Taille de haie", unite: "ml", pu: 6, mots: ["taille de haie", "haie"] },
+        { id: "elag", nom: "Élagage d'arbre", unite: "u", pu: 180, mots: ["elagage"] },
+        { id: "dv", nom: "Évacuation des déchets verts", unite: "forfait", pu: 60, mots: ["dechets vert", "evacuation"] },
+        { id: "gazon", nom: "Pose de gazon en rouleaux", unite: "m²", pu: 12, mots: ["gazon"] },
+        { id: "plant", nom: "Plantation d'arbuste", unite: "u", pu: 25, mots: ["arbuste", "plantation"] }],
+      examples: [
+        { label: "Entretien", text: "Devis pour Monsieur Petit, 9 chemin des Vignes à Fréjus. Taille de haie 30 mètres linéaires, élagage de deux arbres, tonte de pelouse 400 m² et évacuation des déchets verts." }],
+    },
+    photographe: {
+      label: "Photographe", metier: "Photographe", btp: false, tva: 20, objet: "Reportage photo", entreprise: "Studio Lumière",
+      catalog: [MO(90, "Heure de prise de vue"),
+        { id: "dep", nom: "Déplacement", unite: "km", pu: 0.6, mots: ["deplacement"] },
+        { id: "forf", nom: "Forfait mariage journée", unite: "forfait", pu: 1500, mots: ["mariage"] },
+        { id: "seance", nom: "Séance photo (1 h)", unite: "forfait", pu: 150, mots: ["seance"] },
+        { id: "drone", nom: "Prises de vue par drone", unite: "forfait", pu: 250, mots: ["drone"] },
+        { id: "album", nom: "Album photo 30 pages", unite: "u", pu: 250, mots: ["album"] },
+        { id: "ret", nom: "Retouche photo supplémentaire", unite: "u", pu: 5, mots: ["retouche"] }],
+      examples: [
+        { label: "Mariage", text: "Devis pour Mariage Dupont et Leroy, 5 chemin des Oliviers à Draguignan. Forfait mariage journée, prises de vue par drone, un album photo et 50 retouches supplémentaires. Déplacement 60 km." }],
+    },
+    traiteur: {
+      label: "Traiteur", metier: "Traiteur", btp: false, tva: 10, objet: "Prestation traiteur", entreprise: "Saveurs du Sud",
+      catalog: [
+        { id: "menu", nom: "Menu (entrée, plat, dessert)", unite: "personne", pu: 35, mots: ["menu", "repa"] },
+        { id: "cocktail", nom: "Cocktail apéritif (8 pièces)", unite: "personne", pu: 12, mots: ["cocktail", "aperitif"] },
+        { id: "gateau", nom: "Gâteau / pièce montée", unite: "personne", pu: 5, mots: ["gateau", "piece montee"] },
+        { id: "boisson", nom: "Boissons sans alcool", unite: "personne", pu: 4, mots: ["boisson"] },
+        { id: "vais", nom: "Location de vaisselle", unite: "personne", pu: 3, mots: ["vaisselle"] },
+        { id: "serv", nom: "Serveur (5 heures)", unite: "u", pu: 150, mots: ["serveur", "service"] },
+        { id: "livr", nom: "Livraison", unite: "forfait", pu: 50, mots: ["livraison"] }],
+      examples: [
+        { label: "Anniversaire", text: "Devis pour Madame Morel, 8 rue Jean Aicard à Saint-Raphaël, anniversaire le 14 juin. Cocktail apéritif et menu pour 60 personnes, location de vaisselle pour 60 personnes, deux serveurs et la livraison." }],
+    },
+    demenageur: {
+      label: "Déménageur", metier: "Déménageur", btp: false, tva: 20, objet: "Déménagement", entreprise: "Déménagements Blanc",
+      catalog: [MO(40),
+        { id: "cam", nom: "Camion 20 m³ avec chauffeur", unite: "jour", pu: 350, mots: ["camion"] },
+        { id: "km", nom: "Kilométrage", unite: "km", pu: 1.2, mots: ["km", "kilometre"] },
+        { id: "carton", nom: "Carton fourni", unite: "u", pu: 2.5, mots: ["carton"] },
+        { id: "emb", nom: "Emballage des objets fragiles", unite: "forfait", pu: 150, mots: ["emballage", "fragile"] },
+        { id: "monte", nom: "Monte-meubles", unite: "forfait", pu: 250, mots: ["monte-meuble", "monte meuble"] },
+        { id: "dem", nom: "Démontage et remontage des meubles", unite: "forfait", pu: 120, mots: ["demontage", "remontage"] }],
+      examples: [
+        { label: "Toulon → Lyon", text: "Devis pour Monsieur Blanc, 3 rue Paradis à Toulon, déménagement vers Lyon, 400 km. Camion 20 m³ avec chauffeur pendant deux jours, 24 heures de main-d'œuvre, 50 cartons et le monte-meubles." }],
+    },
+    garagiste: {
+      label: "Garagiste", metier: "Garagiste", btp: false, tva: 20, objet: "Entretien du véhicule", entreprise: "Garage Lopez",
+      catalog: [MO(60),
+        { id: "vid", nom: "Vidange + filtre à huile", unite: "forfait", pu: 89, mots: ["vidange"] },
+        { id: "plaq", nom: "Plaquettes de frein (train avant)", unite: "u", pu: 120, mots: ["plaquette"] },
+        { id: "disq", nom: "Disque de frein", unite: "u", pu: 70, mots: ["disque"] },
+        { id: "pneu", nom: "Pneu", unite: "u", pu: 85, mots: ["pneu"] },
+        { id: "dist", nom: "Kit de distribution", unite: "forfait", pu: 450, mots: ["distribution"] },
+        { id: "diag", nom: "Diagnostic électronique", unite: "forfait", pu: 50, mots: ["diagnostic", "valise"] },
+        { id: "clim", nom: "Recharge de climatisation", unite: "forfait", pu: 80, mots: ["clim"] }],
+      examples: [
+        { label: "Révision", text: "Devis pour Monsieur Lopez, 6 avenue de Verdun à Fréjus, Clio 4 immatriculée AB-123-CD. Vidange avec filtre, plaquettes de frein avant, deux disques, quatre pneus et 2 heures de main-d'œuvre." }],
+    },
+    graphiste: {
+      label: "Graphiste / web", metier: "Graphiste et créateur de sites", btp: false, tva: 20, objet: "Identité visuelle et site web", entreprise: "Atelier Pixel",
+      catalog: [MO(45, "Heure de travail"),
+        { id: "logo", nom: "Création de logo", unite: "forfait", pu: 450, mots: ["logo"] },
+        { id: "charte", nom: "Charte graphique", unite: "forfait", pu: 600, mots: ["charte"] },
+        { id: "carte", nom: "Cartes de visite (design)", unite: "forfait", pu: 120, mots: ["carte de visite"] },
+        { id: "flyer", nom: "Flyer (design)", unite: "forfait", pu: 150, mots: ["flyer"] },
+        { id: "site", nom: "Site vitrine (5 pages)", unite: "forfait", pu: 1200, mots: ["site"] },
+        { id: "page", nom: "Page supplémentaire", unite: "u", pu: 150, mots: ["page supplementaire"] },
+        { id: "maint", nom: "Maintenance du site", unite: "mois", pu: 40, mots: ["maintenance"] }],
+      examples: [
+        { label: "Boulangerie", text: "Devis pour la boulangerie Le Fournil, 18 place de la Mairie à Avignon. Création de logo, cartes de visite, site vitrine avec deux pages supplémentaires et maintenance pendant 12 mois." }],
+    },
+    nettoyage: {
+      label: "Nettoyage", metier: "Entreprise de nettoyage", btp: false, tva: 20, objet: "Prestation de nettoyage", entreprise: "Net Pro Services",
+      catalog: [MO(30),
+        { id: "fin", nom: "Nettoyage de fin de chantier", unite: "m²", pu: 5, mots: ["fin de chantier"] },
+        { id: "vitre", nom: "Nettoyage des vitres", unite: "m²", pu: 4, mots: ["vitre"] },
+        { id: "menage", nom: "Ménage complet", unite: "m²", pu: 3, mots: ["menage"] },
+        { id: "moq", nom: "Shampoing moquette", unite: "m²", pu: 6, mots: ["moquette"] },
+        { id: "canap", nom: "Nettoyage de canapé", unite: "u", pu: 80, mots: ["canape"] },
+        { id: "prod", nom: "Produits et matériel", unite: "forfait", pu: 25, mots: ["produit", "materiel"] }],
+      examples: [
+        { label: "Fin de chantier", text: "Devis pour l'agence Immo Sud, 5 boulevard Carnot à Toulon. Nettoyage de fin de chantier 120 m², nettoyage des vitres 40 m² et produits fournis." }],
+    },
+    autre: {
+      label: "Autre métier", metier: "Mon métier", btp: false, tva: 20, objet: "Prestation", entreprise: "Mon entreprise",
+      catalog: [MO(40), DEP],
+      examples: [
+        { label: "Exemple", text: "Devis pour Madame Dubois, 7 rue Victor Hugo à Lyon. 3 heures de travail et le déplacement." }],
+    },
+  };
+  const tpl = () => TEMPLATES[profile.metierId] || TEMPLATES.autre;
+  const tvaOptions = () => (tpl().btp ? TVA_BTP : TVA_STD);
+  const assuranceLabel = () => (tpl().btp ? "Assurance décennale" : "Assurance responsabilité civile professionnelle");
+
+  const DEFAULT_PROFILE = {
+    nom: "", metier: "", metierId: null,
+    adresse: "8 avenue des Pins, 83000 Toulon", tel: "06 00 00 00 00", email: "contact@exemple.fr",
+    siret: "123 456 789 00012", assurance: "Exemple Assurances, contrat n° 000000, couverture France métropolitaine",
+    forme: "Micro-entreprise", capital: "", immat: "RNE, SIREN 123 456 789 (exemple)", tvaIntra: "FR00 123456789 (exemple)",
+    mediateur: "Exemple Médiation, www.exemple-mediation.fr",
+    franchise: false, validite: 30, acompte: 30, exemple: true,
+  };
+
+  // ---------- Stockage (dans ce navigateur seulement) ----------
+  const load = (k, d) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } };
+  const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+  const clone = (x) => JSON.parse(JSON.stringify(x));
+  let profile = Object.assign({}, DEFAULT_PROFILE, load("dv.profile", {}));
+  let catalog = load("dv.catalog", null) || (profile.metierId ? clone(tpl().catalog) : []);
+  let devisList = load("dv.devis", []);
+  let current = null; // devis en cours d'édition
+
+  // ---------- Compte : chaque personne a ses propres données ----------
+  // Mode « compte » : profil, prix et devis sont enregistrés dans l'espace privé de la personne
+  // (data/users/<son id>/), que personne d'autre ne peut lire. Mode « invité » : sur cet appareil seulement.
+  let mode = "invite", db = null, me = null, base = null, syncState = "";
+  const writers = {};
+  const deletedPaths = new Set(); // un devis supprimé ne doit pas être réécrit par une sauvegarde en attente
+  function dbWrite(path, getData) {
+    const w = writers[path] || (writers[path] = { timer: null, busy: false, again: false });
+    clearTimeout(w.timer);
+    w.timer = setTimeout(async function run() {
+      if (deletedPaths.has(path)) return;
+      if (w.busy) { w.again = true; return; }
+      w.busy = true; setSync("saving");
+      try { await db.doc(path).set(clone(getData())); setSync("ok"); }
+      catch (e) { setSync("error"); if (e?.code === "quota_exceeded") toast("Espace plein : supprimez d'anciens devis."); }
+      w.busy = false;
+      if (w.again) { w.again = false; run(); }
+    }, 700);
+  }
+  function setSync(s) { syncState = s; const el = document.getElementById("sync"); if (el) el.replaceWith(syncChip()); }
+  function syncChip() {
+    const c = document.createElement("span"); c.id = "sync";
+    const map = { saving: ["chip", "Enregistrement…"], error: ["chip warn", "Non enregistré"], ok: ["chip ok", "Enregistré"], "": ["chip ok", "Enregistré"] };
+    [c.className, c.textContent] = map[syncState] || map[""];
+    return c;
+  }
+  function saveProfile() { if (mode === "compte") dbWrite(base + "/profile", () => profile); else save("dv.profile", profile); }
+  function saveCatalog() { if (mode === "compte") dbWrite(base + "/catalog", () => ({ items: catalog })); else save("dv.catalog", catalog); }
+  function saveDevis(d) { if (mode === "compte") dbWrite(base + "/devis-" + d.id, () => d); else save("dv.devis", devisList); }
+  const within = (p, ms) => Promise.race([p, new Promise((r) => setTimeout(() => r(null), ms))]);
+  async function connect() {
+    if (!window.claude?.use) return;
+    const [d, u] = await Promise.all([within(window.claude.use("db"), 5000), within(window.claude.use("user"), 5000)]);
+    if (!d || !u) return;
+    const who = await u.me();
+    if (!who.id) return;
+    const snap = await d.collection("data/users/" + who.id).get();
+    db = d; me = who; base = "data/users/" + who.id; mode = "compte";
+    let p = null, c = null; const list = [];
+    for (const doc of snap.docs) {
+      const x = clone(doc.data());
+      if (doc.id === "profile") p = x;
+      else if (doc.id === "catalog") c = x.items;
+      else if (doc.id.startsWith("devis-")) list.push(x);
+    }
+    if (p) {
+      profile = Object.assign({}, DEFAULT_PROFILE, p);
+      catalog = Array.isArray(c) ? c : clone(tpl().catalog);
+      devisList = list.sort((a, b) => String(b.date).localeCompare(String(a.date)));
+    } else if (profile.metierId) {
+      // Première connexion : on range dans le compte ce qui a déjà été fait sur cet appareil
+      saveProfile(); saveCatalog(); devisList.forEach(saveDevis);
+    } else {
+      profile = clone(DEFAULT_PROFILE); catalog = []; devisList = [];
+    }
+  }
+
+  // ---------- Outils ----------
+  const $ = (s, r = document) => r.querySelector(s);
+  const euro = (n) => (Math.round((Number(n) || 0) * 100) / 100).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
+  const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const norm = (s) => String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[’']/g, "'").replace(/œ/g, "oe");
+  // Pour comparer les mots sans se soucier du pluriel (« mitigeurs » = « mitigeur »)
+  const key = (s) => norm(s).replace(/([a-z]{3,})s\b/g, (m, w) => (w === "troi" ? m : w));
+  const today = () => new Date();
+  const dateFr = (d) => new Date(d).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" });
+  const uid = () => Math.random().toString(36).slice(2, 9);
+  function nextNumber() {
+    const y = today().getFullYear();
+    const n = Math.max(0, ...devisList.filter((d) => d.numero.startsWith("D-" + y)).map((d) => parseInt(d.numero.slice(7), 10) || 0)) + 1;
+    return `D-${y}-${String(n).padStart(4, "0")}`;
+  }
+  const fr = (n) => String(n).replace(".", ",");
+  const round2 = (n) => Math.round(n * 100) / 100;
+  function totals(d) {
+    const brut = d.lignes.reduce((s, l) => s + (Number(l.qte) || 0) * (Number(l.pu) || 0), 0);
+    const remise = Number(d.remise) || 0;
+    const ht = round2(brut * (1 - remise / 100));
+    const taux = profile.franchise ? 0 : Number(d.tva) || 0;
+    const tva = round2(ht * taux / 100);
+    const ttc = ht + tva;
+    return { brut, remise, ht, taux, tva, ttc, acompte: round2(ttc * (Number(profile.acompte) || 0) / 100) };
+  }
+  function toast(msg) {
+    document.querySelectorAll(".toast").forEach((x) => x.remove()); // un seul message à la fois
+    const t = document.createElement("div"); t.className = "toast"; t.textContent = msg; t.setAttribute("role", "status");
+    document.body.append(t); setTimeout(() => t.remove(), 2200);
+  }
+
+  // ---------- Navigation ----------
+  const VIEWS = { loading: "v-loading", home: "v-home", pick: "v-pick", new: "v-new", edit: "v-edit", list: "v-list", prices: "v-prices", company: "v-company" };
+  const TAB_OF = { new: "home", edit: "list" };
+  function show(name) {
+    for (const [k, id] of Object.entries(VIEWS)) $("#" + id).hidden = k !== name;
+    const tab = name === "pick" ? (profile.metierId ? "company" : "home") : (TAB_OF[name] || name);
+    document.querySelectorAll(".tab").forEach((t) => t.setAttribute("aria-current", t.dataset.tab === tab ? "page" : "false"));
+    if (name === "home") renderHome();
+    if (name === "pick") renderPick();
+    if (name === "new") { $("#dict").value = ""; $("#status").hidden = true; $("#missing").hidden = true; } // chaque nouveau devis commence vide
+    if (name === "list") renderList();
+    if (name === "prices") renderPrices();
+    if (name === "company") renderCompany();
+    window.scrollTo(0, 0);
+  }
+  document.querySelectorAll(".tab").forEach((t) => t.addEventListener("click", () => show(profile.metierId ? t.dataset.tab : "pick")));
+
+  // ---------- Accueil ----------
+  function renderHome() {
+    $("#home-metier").textContent = tpl().label + (profile.nom ? " · " + profile.nom : "");
+    const first = (me?.name || "").split(" ")[0];
+    $("#home-hello").textContent = first ? "Bonjour " + first : "Nouveau devis";
+    // Tableau de bord du mois, profil à compléter, devis à relancer
+    const extra = $("#home-extra"); extra.innerHTML = "";
+    const now = today();
+    const month = devisList.filter((d) => { const x = new Date(d.date); return x.getMonth() === now.getMonth() && x.getFullYear() === now.getFullYear(); });
+    const decided = month.filter((d) => d.statut === "Accepté" || d.statut === "Refusé");
+    const won = month.filter((d) => d.statut === "Accepté");
+    if (devisList.length) {
+      extra.insertAdjacentHTML("beforeend", `<div class="stats">
+        <div><b class="num">${month.length}</b><span>devis ce mois-ci</span></div>
+        <div><b class="num">${Math.round(won.reduce((s, d) => s + totals(d).ttc, 0)).toLocaleString("fr-FR")} €</b><span>acceptés (TTC)</span></div>
+        <div><b class="num">${decided.length ? Math.round(won.length / decided.length * 100) + " %" : "—"}</b><span>taux d'acceptation</span></div></div>`);
+    }
+    if (missingInfo(null).length) {
+      const b = document.createElement("button"); b.type = "button"; b.className = "item notice";
+      b.innerHTML = "<b>Complétez votre entreprise</b><span class=\"lead\" style=\"font-size:.88rem\">Certaines mentions obligatoires manquent sur vos devis et factures. Touchez ici pour les remplir.</span>";
+      b.addEventListener("click", () => show("company")); extra.append(b);
+    }
+    const late = devisList.filter((d) => d.statut === "Envoyé" && d.envoyeLe && (now - new Date(d.envoyeLe)) > 7 * 864e5);
+    if (late.length) {
+      const b = document.createElement("button"); b.type = "button"; b.className = "item notice";
+      b.innerHTML = `<b>${late.length} devis à relancer</b><span class="lead" style="font-size:.88rem">Envoyé${late.length > 1 ? "s" : ""} il y a plus de 7 jours sans réponse : ${esc(late.map((d) => d.client.nom || d.numero).join(", "))}.</span>`;
+      b.addEventListener("click", () => { listFilter = "Envoyé"; show("list"); }); extra.append(b);
+    }
+    const box = $("#recent"); box.innerHTML = "";
+    if (!devisList.length) { box.innerHTML = '<p class="empty">Vos devis apparaîtront ici.</p>'; return; }
+    devisList.slice(0, 3).forEach((d) => box.append(devisItem(d)));
+  }
+  $("#big-devis").addEventListener("click", () => { show("new"); setMode("voice"); startRec(); }); // un appui : on parle tout de suite
+  $("#back-home").addEventListener("click", () => show("home"));
+
+  // ---------- Choix du métier ----------
+  function renderPick() {
+    $("#pick-warn").hidden = !profile.metierId;
+    $("#pick-remember").textContent = mode === "compte" ? "Votre compte s'en souvient : vous ne le choisissez qu'une fois." : "";
+    const box = $("#metiers"); box.innerHTML = "";
+    for (const [id, t] of Object.entries(TEMPLATES)) {
+      const b = document.createElement("button"); b.type = "button"; b.className = "metier";
+      b.setAttribute("aria-pressed", String(profile.metierId === id));
+      b.innerHTML = `<b>${esc(t.label)}</b><span>${t.catalog.length} prix de départ</span>`;
+      b.addEventListener("click", () => {
+        profile.metierId = id; profile.metier = t.metier;
+        if (profile.exemple) profile.nom = t.entreprise;
+        catalog = clone(t.catalog);
+        saveProfile(); saveCatalog();
+        renderExamples();
+        toast(t.label + " : prix de départ chargés");
+        show("home");
+      });
+      box.append(b);
+    }
+  }
+
+  // ---------- 1. Dictée -> devis ----------
+  function renderExamples() {
+    const ex = $("#examples"); ex.innerHTML = "";
+    tpl().examples.forEach((e) => {
+      const b = document.createElement("button"); b.type = "button"; b.textContent = e.label;
+      b.addEventListener("click", () => { $("#dict").value = e.text; $("#dict").focus(); });
+      ex.append(b);
+    });
+  }
+  renderExamples();
+
+  let sample = null;
+  $("#mode").innerHTML = '<span class="chip">Lecture automatique</span> L\'appli reconnaît vos prestations, les quantités et le client.';
+  window.claude?.use?.("sample").then((s) => {
+    sample = s;
+    if (s) $("#mode").innerHTML = '<span class="chip ok">IA activée</span> L\'IA comprend la dictée, la lecture simple prend le relais si besoin.';
+  }).catch(() => {});
+
+  const NUMS = { un: 1, une: 1, deux: 2, trois: 3, quatre: 4, cinq: 5, six: 6, sept: 7, huit: 8, neuf: 9, dix: 10, douze: 12, quinze: 15, vingt: 20, trente: 30, cinquante: 50, cent: 100 };
+  const NUM = "(\\d+(?:[.,]\\d+)?|un|une|deux|trois|quatre|cinq|six|sept|huit|neuf|dix|douze|quinze|vingt|trente|cinquante|cent)";
+  const UNIT = "(m²|m2|ml|metre|km|personne|jour|moi|kg)(?![a-z])";
+  const UNIT_OF = { "m²": "m²", m2: "m²", ml: "ml", metre: "ml", km: "km", personne: "personne", jour: "jour", moi: "mois", kg: "kg" };
+  const toNum = (w) => NUMS[w] ?? parseFloat(String(w).replace(",", "."));
+  // Quantité d'une prestation trouvée à la position i : « 45 m² » après, « de deux » après, « deux » avant…
+  function quantity(text, i, len, unite) {
+    const after = text.slice(i + len, i + len + 48);
+    const before = text.slice(0, i);
+    const seg = before.slice(Math.max(before.lastIndexOf(","), before.lastIndexOf("."), before.lastIndexOf(";")) + 1);
+    // Un nombre suivi d'une unité ne compte que si c'est l'unité de la prestation (« 12 mois » ne va pas sur une page)
+    const withUnit = (re) => { const m = after.match(re); return m && UNIT_OF[m[2]] === unite ? toNum(m[1]) : null; };
+    let q = withUnit(new RegExp("^[^.,;]{0,40}?\\b" + NUM + "\\s*" + UNIT));
+    if (q != null) return q;
+    let m = after.match(new RegExp("^\\s*(?:de|d')\\s*" + NUM + "\\b"));
+    if (m) return toNum(m[1]);
+    m = seg.match(new RegExp("\\b" + NUM + "\\s+(?:(?!et\\b)[a-z'-]+\\s+){0,2}$"));
+    if (m) return toNum(m[1]);
+    q = withUnit(new RegExp("^[^.;]{0,40}?\\b" + NUM + "\\s*" + UNIT));
+    return q != null ? q : null;
+  }
+  // Lecture simple, sans IA : on cherche les prestations de « Mes prix » et leur quantité
+  function parseLocal(text) {
+    const t = key(text);
+    const lignes = [];
+    const used = new Set();
+    // Heures : « 3 heures », « 1 heure et demie », « 2h30 »
+    const mo = catalog.find((c) => c.id === "mo" || c.unite === "h");
+    const h = t.match(new RegExp("\\b" + NUM + "\\s*h(?:eure)?\\b(\\s*et\\s*demie|\\s*30)?"));
+    if (h && mo) {
+      lignes.push({ designation: mo.nom, qte: toNum(h[1]) + (h[2] ? 0.5 : 0), unite: mo.unite, pu: mo.pu, aVerifier: false, pos: h.index });
+      used.add(mo);
+    }
+    // Les autres prestations, du mot-clé le plus long au plus court (« chauffe-eau 100 » avant « chauffe-eau »)
+    const entries = [];
+    for (const c of catalog) for (const m of [c.nom, ...(c.mots || [])]) if (m) entries.push({ c, m: key(m) });
+    entries.sort((a, b) => b.m.length - a.m.length);
+    let rest = t;
+    for (const { c, m } of entries) {
+      if (used.has(c) || c === mo) continue;
+      const i = rest.indexOf(m);
+      if (i < 0) continue;
+      let q = quantity(rest, i, m.length, c.unite);
+      // Quantité dite plus loin ? (« peinture des murs … les murs font 45 m² »)
+      if (q == null && !["u", "forfait"].includes(c.unite)) {
+        for (const mm of [c.nom, ...(c.mots || [])].map(key).filter(Boolean)) {
+          for (let at = t.indexOf(mm, i + 1); at >= 0 && q == null; at = t.indexOf(mm, at + 1)) {
+            const after = t.slice(at + mm.length, at + mm.length + 48);
+            const um = after.match(new RegExp("^[^.;]{0,40}?\\b" + NUM + "\\s*" + UNIT));
+            if (um && UNIT_OF[um[2]] === c.unite) q = toNum(um[1]);
+          }
+          if (q != null) break;
+        }
+      }
+      const ok = q != null && q > 0 && q < 100000;
+      // Pour une pièce ou un forfait, « 1 » va de soi ; pour des m², des km, des personnes… il faut que ce soit dit
+      lignes.push({ designation: c.nom, qte: ok ? q : 1, unite: c.unite, pu: c.pu, aVerifier: false, pos: i, qteManquante: !ok && !["u", "forfait"].includes(c.unite) });
+      used.add(c);
+      rest = rest.slice(0, i) + " ".repeat(m.length) + rest.slice(i + m.length);
+    }
+    // Client et adresse : « Devis pour Madame Martin, 12 rue des Lilas à Toulon »
+    // … ou plus loin dans la phrase : « … pour Madame Lefèvre, 3 allée des Tilleuls »
+    const cm = text.match(/^\s*(?:un\s+)?(?:devis\s+)?pour\s+([^,.]+)/i)
+      || text.match(/\bpour\s+((?:madame|monsieur|mme|mlle|m\.|mr|la société|l'entreprise|la sarl|la sas)\s+[^,.\d]+)/i);
+    const am = text.match(/(\d+\s*(?:bis|ter)?,?\s+(?:rue|avenue|av\.|boulevard|bd|chemin|impasse|allée|place|route|quai|cours)[^,.]*?)(?:\s+(?:à|a)\s+([A-ZÉÈÀ][\wÀ-ÿ' -]+?))?(?:[,.]|$)/i);
+    return {
+      client: { nom: cm ? cm[1].trim() : "", adresse: am ? (am[1].trim() + (am[2] ? ", " + am[2].trim() : "")) : "" },
+      objet: lignes.length ? tpl().objet : "",
+      // dans l'ordre où elles ont été dictées
+      lignes: lignes.sort((a, b) => a.pos - b.pos).map(({ pos, ...l }) => l),
+    };
+  }
+
+  async function parseAI(text) {
+    const cat = catalog.map((c) => ({ designation: c.nom, unite: c.unite, prix_ht: c.pu }));
+    const prompt =
+`Tu aides un professionnel (métier : ${profile.metier}) à transformer sa dictée en devis.
+Voici SA liste de prix (prix HT en euros), à utiliser en priorité, avec exactement la même désignation et le même prix :
+${JSON.stringify(cat)}
+
+Règles :
+- Une ligne par fourniture ou prestation mentionnée dans la dictée. N'ajoute rien qui n'est pas dit.
+- Unités possibles : h, u, m², ml, km, jour, mois, personne, forfait.
+- Quantités : respecte la dictée ("deux mitigeurs" = 2, "1 heure et demie" = 1.5).
+- Si une chose dite n'est pas dans la liste de prix, mets une estimation de prix HT réaliste en France et "a_verifier": true.
+- Si la dictée donne un prix, utilise-le.
+- Trouve le nom du client et son adresse complète s'ils sont dits, sinon chaîne vide. N'invente jamais un client ou une adresse.
+- N'invente jamais une quantité : si une surface (m²), une longueur, un nombre d'heures, de jours, de personnes ou de km n'est pas dit, mets "qte": null.
+- "manquant" : liste, en phrases très courtes, les informations indispensables qui manquent pour faire ce devis correctement (ex. : "la surface à peindre en m²", "le nombre d'heures de main-d'œuvre", "le modèle du chauffe-eau"). Liste vide si rien ne manque. Ne demande pas le nom ou l'adresse du client : c'est vérifié à part.
+- "objet" : un titre court de la prestation (5 mots maximum).
+
+Réponds uniquement avec ce JSON :
+{"client":{"nom":"","adresse":""},"objet":"","lignes":[{"designation":"","qte":1,"unite":"u","prix_ht":0,"a_verifier":false}],"manquant":[]}
+
+Dictée de l'artisan :
+"""${text.slice(0, 4000)}"""`;
+    const r = await sample.json(prompt, { modelTier: "quick" });
+    if (!r || !Array.isArray(r.lignes)) throw { code: "invalid_json" };
+    return {
+      client: { nom: String(r.client?.nom || ""), adresse: String(r.client?.adresse || "") },
+      objet: String(r.objet || ""),
+      lignes: r.lignes.map((l) => ({
+        designation: String(l.designation || "Ligne"), qte: Number(l.qte) || 1, unite: String(l.unite || "u"),
+        pu: Number(l.prix_ht) || 0, aVerifier: !!l.a_verifier, qteManquante: l.qte == null || !(Number(l.qte) > 0),
+      })),
+      manquant: Array.isArray(r.manquant) ? r.manquant.map(String).filter((x) => x.trim()).slice(0, 8) : [],
+    };
+  }
+
+  // ---------- Infos manquantes : pas de devis tant qu'il manque l'essentiel ----------
+  const MIC_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>';
+  const KBD_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg>';
+  function missingFrom(res) {
+    const out = [];
+    if (!res.client.nom.trim()) out.push({ id: "nom", label: "Le nom du client", input: "text", placeholder: "Ex. : Madame Martin" });
+    if (!res.client.adresse.trim()) out.push({ id: "adresse", label: "L'adresse du chantier", input: "text", placeholder: "Ex. : 12 rue des Lilas, Toulon" });
+    if (!res.lignes.length) out.push({ id: "lignes", label: "Ce qu'il faut faire : aucune prestation reconnue. Dites ou écrivez les travaux, les fournitures et le temps passé." });
+    res.lignes.forEach((l, i) => { if (l.qteManquante) out.push({ id: "q" + i, label: `La quantité pour « ${l.designation} » (en ${l.unite})`, input: "number", line: i }); });
+    // Ce que l'IA a remarqué en plus (sans répéter les quantités déjà demandées)
+    const asked = out.filter((m) => m.line != null).length;
+    (res.manquant || []).forEach((t, k) => { if (!(asked && /quantit|surface|m²|nombre|heure|combien/i.test(t))) out.push({ id: "ai" + k, label: t.charAt(0).toUpperCase() + t.slice(1) }); });
+    return out;
+  }
+  let pending = null; // résultat en attente des infos manquantes
+  function renderMissing(miss) {
+    const box = $("#missing");
+    box.hidden = false;
+    const canFill = miss.every((m) => m.input);
+    box.innerHTML = `<b>Il manque des informations pour faire le devis</b>
+      <ul>${miss.map((m) => `<li><span>${esc(m.label)}</span>${m.input ? `<input data-miss="${m.id}" type="${m.input === "number" ? "text" : "text"}" ${m.input === "number" ? 'inputmode="decimal"' : ""} placeholder="${esc(m.placeholder || "")}" aria-label="${esc(m.label)}">` : ""}</li>`).join("")}</ul>
+      <p class="legal-hint">${canFill ? "Remplissez les cases ci-dessus, ou complétez votre note vocale ou votre texte." : "Complétez votre note vocale ou votre texte avec ces informations, puis recréez le devis."}</p>
+      <div class="row-btns">
+        <button class="btn btn-ghost" type="button" id="miss-voice">${MIC_SVG}Compléter à l'oral</button>
+        <button class="btn btn-ghost" type="button" id="miss-text">${KBD_SVG}Compléter par écrit</button>
+      </div>
+      ${canFill ? '<button class="btn btn-main btn-block" type="button" id="miss-ok">Continuer avec ces informations</button>' : ""}`;
+    box.scrollIntoView({ behavior: "smooth", block: "center" });
+    $("#miss-voice").addEventListener("click", () => { setMode("voice"); box.hidden = true; if (typeof window.__startRec === "function") window.__startRec(); else focusEnd(); });
+    $("#miss-text").addEventListener("click", () => { setMode("text"); box.hidden = true; focusEnd(); });
+    $("#miss-ok")?.addEventListener("click", () => {
+      let still = false;
+      box.querySelectorAll("[data-miss]").forEach((inp) => {
+        const v = inp.value.trim(), id = inp.dataset.miss;
+        if (!v) { still = true; inp.classList.add("need"); return; }
+        if (id === "nom") pending.client.nom = v;
+        else if (id === "adresse") pending.client.adresse = v;
+        else if (id[0] === "q") {
+          const n = Number(v.replace(",", "."));
+          if (!(n > 0)) { still = true; inp.classList.add("need"); return; }
+          const l = pending.lignes[Number(id.slice(1))]; l.qte = n; l.qteManquante = false;
+        }
+      });
+      if (still) { toast("Il manque encore une information"); return; }
+      box.hidden = true; createDevis(pending, $("#dict").value.trim());
+    });
+  }
+  function focusEnd() { const t = $("#dict"); t.focus(); t.setSelectionRange(t.value.length, t.value.length); }
+  function createDevis(result, text) {
+    current = {
+      id: uid(), numero: nextNumber(), date: today().toISOString(), statut: "Brouillon",
+      client: result.client, objet: result.objet || tpl().objet, tva: tpl().tva,
+      lignes: result.lignes.map(({ qteManquante, ...l }) => l), dictee: text,
+    };
+    pending = null;
+    renderEdit(); show("edit");
+  }
+
+  // ---------- Note vocale ou écrit ----------
+  let inputMode = "voice";
+  function setMode(m) {
+    inputMode = m;
+    document.body.dataset.inputMode = m;
+    document.querySelectorAll("[data-mode]").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.mode === m)));
+    $("#dict").placeholder = m === "voice"
+      ? "Votre note vocale s'écrit ici. Dites le client, son adresse, ce qu'il faut faire, les quantités et le temps passé."
+      : "Ex. : Devis pour Madame Martin, 12 rue des Lilas à Toulon. Remplacement du chauffe-eau 200 litres, 3 heures de main-d'œuvre.";
+  }
+  document.querySelectorAll("[data-mode]").forEach((b) => b.addEventListener("click", () => {
+    if (b.dataset.mode === "text" && typeof window.__stopRec === "function") window.__stopRec();
+    setMode(b.dataset.mode);
+    if (b.dataset.mode === "text") focusEnd();
+  }));
+  $("#home-write").addEventListener("click", () => { show("new"); setMode("text"); focusEnd(); });
+  setMode("voice");
+
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  // Sur iPhone et Safari, l'écoute « continue » renvoie le texte avec beaucoup de retard :
+  // on écoute phrase par phrase et on relance tout seul, le texte arrive alors au fil de la parole.
+  const UA = navigator.userAgent;
+  const PER_PHRASE = /iPhone|iPad|iPod/.test(UA) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1) || /^((?!chrome|android|crios|fxios|edg).)*safari/i.test(UA);
+  let rec = null, listening = false, stopping = false, createAfter = false;
+  let committed = "", sessionFinal = "", lastInterim = "", sessionStart = 0, quickEmpty = 0;
+  let heardAny = false;
+  const recStatus = (msg) => { const el = $("#rec-status"); el.hidden = !msg; el.textContent = msg || ""; };
+  const REC_ERRORS = {
+    "not-allowed": "Le micro est refusé. Sur iPhone : Réglages → Safari → Micro → « Autoriser », puis rechargez la page.",
+    "service-not-allowed": "La reconnaissance vocale est désactivée. Sur iPhone : Réglages → Général → Clavier → activez « Dictée » (et vérifiez Réglages → Siri).",
+    "audio-capture": "Aucun micro trouvé, ou il est déjà utilisé par une autre appli.",
+    "network": "Pas de connexion internet : la reconnaissance vocale en a besoin.",
+    "language-not-supported": "Le français n'est pas disponible pour la dictée sur cet appareil.",
+  };
+  if (SR) { $("#rec").hidden = false; $("#kbd-hint").hidden = true; }
+  else recStatus("Ce navigateur ne permet pas la note vocale. Ouvrez le lien dans Safari (iPhone) ou Chrome (Android), ou utilisez « Écrire ».");
+  function setRecUI(on) {
+    listening = on;
+    $("#rec").classList.toggle("on", on);
+    $("#rec-label").textContent = on ? "Je vous écoute… touchez pour terminer" : "Appuyer pour parler";
+  }
+  const join = (...parts) => parts.map((x) => String(x || "").trim()).filter(Boolean).join(" ");
+  function renderDictation() { $("#dict").value = join(committed, sessionFinal, lastInterim); }
+  function finishRec() {
+    setRecUI(false);
+    if (createAfter && $("#dict").value.trim()) $("#go").click(); // on a fini de parler : le devis se crée
+    createAfter = false;
+  }
+  function runSession() {
+    sessionFinal = ""; lastInterim = ""; sessionStart = Date.now();
+    rec = new SR();
+    rec.lang = "fr-FR"; rec.interimResults = true; rec.maxAlternatives = 1; rec.continuous = !PER_PHRASE;
+    rec.onresult = (e) => {
+      heardAny = true; recStatus("");
+      let fin = "", interim = "";
+      for (let i = 0; i < e.results.length; i++) {
+        const t = e.results[i][0].transcript;
+        if (e.results[i].isFinal) fin += t; else interim += t;
+      }
+      sessionFinal = fin; lastInterim = interim;
+      renderDictation();
+    };
+    rec.onerror = (e) => {
+      if (e.error === "no-speech" || e.error === "aborted") return;
+      stopping = true;
+      // Sur iPhone, la relance automatique peut être refusée après une première phrase : on garde le texte
+      if (heardAny && e.error === "not-allowed") { recStatus("Touchez « Appuyer pour parler » pour continuer à dicter."); return; }
+      recStatus(REC_ERRORS[e.error] || "La note vocale n'a pas marché (" + e.error + "). Réessayez, ou utilisez « Écrire ».");
+    };
+    rec.onend = () => {
+      const heard = sessionFinal || lastInterim;
+      committed = join(committed, heard); // on garde aussi la fin de phrase pas encore validée
+      // Sécurité : si le micro s'arrête tout de suite plusieurs fois de suite sans rien entendre, on arrête d'écouter
+      quickEmpty = !heard && Date.now() - sessionStart < 400 ? quickEmpty + 1 : 0;
+      if (quickEmpty >= 5) stopping = true;
+      sessionFinal = ""; lastInterim = "";
+      renderDictation();
+      if (listening && !stopping) { try { runSession(); return; } catch {} }
+      finishRec();
+    };
+    rec.start();
+  }
+  function startRec() {
+    if (!SR || listening) return;
+    committed = $("#dict").value.trim(); stopping = false; createAfter = false; quickEmpty = 0; heardAny = false;
+    recStatus("");
+    setRecUI(true);
+    try { runSession(); } catch (err) { setRecUI(false); recStatus("Impossible de démarrer le micro. Ouvrez le lien dans Safari plutôt que depuis l'icône, ou utilisez « Écrire »."); }
+  }
+  $("#rec").addEventListener("click", () => {
+    if (listening) { stopping = true; createAfter = true; try { rec.stop(); } catch { finishRec(); } }
+    else startRec();
+  });
+  $("#back-home").addEventListener("click", () => { if (listening) { stopping = true; createAfter = false; try { rec.abort(); } catch {} } });
+  window.__startRec = startRec; // utilisés par « Compléter à l'oral » et l'onglet « Écrire »
+  window.__stopRec = () => { if (listening) { stopping = true; createAfter = false; try { rec.stop(); } catch {} } };
+
+  $("#go").addEventListener("click", async () => {
+    const text = $("#dict").value.trim();
+    const st = $("#status");
+    if (!text) { st.hidden = false; st.className = "error"; st.textContent = "Dictez ou écrivez d'abord ce que vous avez à faire."; return; }
+    const btn = $("#go"); btn.disabled = true;
+    st.hidden = false; st.className = "thinking"; st.innerHTML = 'Je prépare le devis <span class="dots"><i></i><i></i><i></i></span>';
+    let result = null, note = "";
+    if (sample) {
+      try { result = await parseAI(text); }
+      catch (e) {
+        if (e?.code === "not_granted" || e?.code === "sampling_disabled") sample = null;
+        note = "L'IA n'a pas répondu, j'ai utilisé la lecture simple. Vérifiez bien les lignes.";
+      }
+    }
+    if (!result) result = parseLocal(text);
+    btn.disabled = false;
+    st.hidden = true;
+    if (note) toast(note);
+    const miss = missingFrom(result);
+    if (miss.length) { pending = result; renderMissing(miss); return; } // pas de devis avec des infos manquantes
+    $("#missing").hidden = true;
+    createDevis(result, text);
+  });
+
+  // ---------- 2. Le devis ----------
+  const ICON_DEL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>';
+  const STATUTS = { Brouillon: "", "Prêt": "accent", "Envoyé": "blue", "Accepté": "ok", "Refusé": "warn" };
+  const statutChip = (s) => `<span class="chip ${STATUTS[s] || ""}">${esc(s)}</span>`;
+  // Règles juridiques (droit français) appliquées au devis
+  const isPro = (d) => d.clientType === "pro";
+  const offPremises = (d) => !isPro(d) && d.horsEtab !== false;           // signé chez le client (contrat hors établissement)
+  const retractation = (d) => offPremises(d) && !d.urgent;                 // délai de 14 jours + pas de paiement avant 7 jours
+  const locked = (d) => !!(d.facture || d.signature);                      // un devis signé ou facturé ne se modifie plus
+  const sellerOf = (d, kind) => (kind === "facture" && d.facture?.vendeur) || (kind === "avoir" && d.avoir?.vendeur) || d.vendeur || profile;
+  const dateInput = (iso) => (iso ? String(iso).slice(0, 10) : "");
+
+  function renderEdit() {
+    const d = current;
+    if (!d.clientType) d.clientType = "particulier";
+    const lock = locked(d);
+    const flags = d.lignes.filter((l) => l.aVerifier).length;
+    const v = $("#v-edit");
+    v.innerHTML = `
+      <button class="back" type="button" id="back-list">← Mes devis</button>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+        <div><p class="section-title">Devis <span class="num">${esc(d.numero)}</span></p><h2 style="font-size:1.7rem;margin-top:4px">${lock ? "Devis verrouillé" : "Vérifiez et ajustez"}</h2></div>
+        ${statutChip(d.statut)}
+      </div>
+      ${lock ? `<p class="example-note">${d.facture
+        ? `Facturé (${esc(d.facture.numero)}) : ce devis ne peut plus être modifié ni supprimé. Pour corriger la facture, créez un avoir, puis dupliquez le devis.`
+        : `Signé par le client le ${dateFr(d.signeLe)} : ce devis ne peut plus être modifié. Pour changer quelque chose, dupliquez-le et faites signer la nouvelle version.`}</p>` : ""}
+      ${!lock && flags ? `<p class="example-note">${flags} ligne${flags > 1 ? "s" : ""} en jaune : prix estimé, à vérifier avant d'envoyer.</p>` : ""}
+      ${lock ? "" : `<p class="ai-note">Devis préparé automatiquement à partir de votre dictée : vérifiez chaque ligne. Vous restez responsable de son contenu.</p>`}
+      <div class="card" id="ai-edit" hidden>
+        <p class="section-title">Modifier en parlant</p>
+        <label class="field">Dites ce qu'il faut changer
+          <input id="ai-instr" placeholder="Ex. : enlève le déplacement et mets 4 heures" autocomplete="off"></label>
+        <button class="btn btn-ghost" type="button" id="ai-apply">Appliquer la modification</button>
+        <div id="ai-status" hidden></div>
+      </div>
+      <div class="card">
+        <p class="section-title">Client</p>
+        <div class="seg seg-full" role="radiogroup" aria-label="Type de client">
+          <button type="button" role="radio" data-ct="particulier" aria-checked="${!isPro(d)}">Particulier</button>
+          <button type="button" role="radio" data-ct="pro" aria-checked="${isPro(d)}">Professionnel</button>
+        </div>
+        <label class="field">Nom${isPro(d) ? " de l'entreprise" : ""}<input id="c-nom" value="${esc(d.client.nom)}" autocomplete="off"></label>
+        <label class="field">Adresse<input id="c-adr" value="${esc(d.client.adresse)}" autocomplete="off"></label>
+        ${isPro(d) ? `<label class="field">SIREN du client<input id="c-siren" inputmode="numeric" value="${esc(d.clientSiren || "")}" autocomplete="off"></label>` : `
+        <label class="check"><input type="checkbox" id="c-hors" ${d.horsEtab !== false ? "checked" : ""}> Le devis est signé chez le client ou hors de mon local</label>
+        ${offPremises(d) ? `
+        <label class="check"><input type="checkbox" id="c-urgent" ${d.urgent ? "checked" : ""}> Réparation urgente demandée par le client à son domicile</label>
+        ${d.urgent ? "" : `<label class="check"><input type="checkbox" id="c-avant" ${d.debutAvant ? "checked" : ""}> Le client demande que les travaux commencent avant la fin du délai de rétractation</label>`}
+        <p class="legal-hint">${d.urgent
+          ? "Réparation urgente : pas de droit de rétractation pour les travaux strictement nécessaires à l'urgence."
+          : "Le client aura 14 jours pour se rétracter, et aucun paiement ne pourra être demandé avant 7 jours. Le devis l'indiquera, avec le formulaire de rétractation."}</p>` : ""}`}
+        <label class="field">Objet<input id="c-obj" value="${esc(d.objet)}" autocomplete="off"></label>
+        <div class="grid2">
+          <label class="field">Début des travaux<input id="c-debut" type="date" value="${esc(dateInput(d.debut))}"></label>
+          <label class="field">Durée estimée<input id="c-duree" value="${esc(d.duree || "")}" placeholder="Ex. : 2 jours" autocomplete="off"></label>
+        </div>
+      </div>
+      <div class="card">
+        <p class="section-title">Lignes du devis</p>
+        <div class="list" id="lines"></div>
+        ${lock ? "" : '<button class="btn btn-ghost" type="button" id="add-line">+ Ajouter une ligne</button>'}
+      </div>
+      <div class="card">
+        ${profile.franchise
+          ? `<p class="lead">TVA non applicable, article 293 B du CGI (micro-entreprise en franchise).</p>`
+          : `<label class="field">Taux de TVA<select id="c-tva">${tvaOptions().map((t) => `<option value="${t.v}" ${Number(d.tva) === t.v ? "selected" : ""}>${t.label}</option>`).join("")}</select></label>`}
+        <label class="field">Remise (%)<input id="c-remise" inputmode="decimal" value="${esc(d.remise || 0)}"></label>
+        <div class="totals" id="totals"></div>
+      </div>
+      <div class="sticky-actions">
+        <button class="btn btn-main btn-big btn-block" type="button" id="to-preview">${lock ? "Voir les documents" : "Voir le devis final"}</button>
+      </div>
+      <div id="preview-wrap" hidden></div>`;
+    const lines = $("#lines", v);
+    const drawLines = () => {
+      lines.innerHTML = "";
+      d.lignes.forEach((l, i) => {
+        const el = document.createElement("div");
+        el.className = "line" + (l.aVerifier && !lock ? " flag" : "");
+        el.innerHTML = `
+          ${l.aVerifier && !lock ? '<div class="flag-row"><span class="flag-note">Prix estimé : à vérifier</span><button class="link-btn" type="button" data-keep>Ajouter à mes prix</button></div>' : ""}
+          <div class="line-top">
+            <input aria-label="Désignation" value="${esc(l.designation)}" data-k="designation">
+            ${lock ? "" : `<button class="icon-btn" type="button" aria-label="Supprimer la ligne" data-del>${ICON_DEL}</button>`}
+          </div>
+          <div class="line-nums">
+            <label>Qté<input inputmode="decimal" value="${esc(l.qte)}" data-k="qte"></label>
+            <label>Unité<input value="${esc(l.unite)}" data-k="unite"></label>
+            <label>Prix HT<input inputmode="decimal" value="${esc(l.pu)}" data-k="pu"></label>
+            <span class="line-total" data-tot>${euro(l.qte * l.pu)}</span>
+          </div>`;
+        if (!lock) {
+          el.addEventListener("input", (e) => {
+            const k = e.target.dataset.k; if (!k) return;
+            l[k] = k === "qte" || k === "pu" ? Number(String(e.target.value).replace(",", ".")) || 0 : e.target.value;
+            if (k === "pu" && l.aVerifier) { l.aVerifier = false; el.classList.remove("flag"); el.querySelector(".flag-row")?.remove(); }
+            el.querySelector("[data-tot]").textContent = euro(l.qte * l.pu);
+            drawTotals(); persist();
+          });
+          el.querySelector("[data-del]").addEventListener("click", () => { d.lignes.splice(i, 1); drawLines(); drawTotals(); persist(); });
+          el.querySelector("[data-keep]")?.addEventListener("click", () => {
+            catalog.push({ id: uid(), nom: l.designation, unite: l.unite, pu: l.pu, mots: [] });
+            saveCatalog(); l.aVerifier = false; persist(); drawLines();
+            toast("« " + l.designation + " » ajouté à vos prix");
+          });
+        }
+        lines.append(el);
+      });
+      if (!d.lignes.length) lines.innerHTML = '<p class="empty">Aucune ligne. Ajoutez-en une ci-dessous.</p>';
+    };
+    const drawTotals = () => {
+      const t = totals(d);
+      $("#totals", v).innerHTML = `
+        ${t.remise ? `<div><span>Sous-total HT</span><span class="num">${euro(t.brut)}</span></div><div><span>Remise ${fr(t.remise)} %</span><span class="num">− ${euro(t.brut - t.ht)}</span></div>` : ""}
+        <div><span>Total HT</span><span class="num">${euro(t.ht)}</span></div>
+        <div><span>TVA ${profile.franchise ? "" : fr(t.taux) + " %"}</span><span class="num">${euro(t.tva)}</span></div>
+        <div class="ttc"><span>Total TTC</span><span class="num">${euro(t.ttc)}</span></div>
+        ${profile.acompte ? `<div class="lead" style="font-size:.88rem"><span>Acompte ${profile.acompte} % ${retractation(d) ? "(après 7 jours)" : "à la signature"}</span><span class="num">${euro(t.acompte)}</span></div>` : ""}`;
+    };
+    drawLines(); drawTotals();
+    $("#back-list", v).addEventListener("click", () => show("list"));
+    $("#to-preview", v).addEventListener("click", () => { renderPreview(); });
+
+    if (lock) {
+      // Lecture seule : rien ne bouge sur un devis signé ou facturé
+      v.querySelectorAll(".card input, .card select, .seg button").forEach((x) => { x.disabled = true; });
+      persist();
+      return;
+    }
+    const redraw = () => { persist(); renderEdit(); };
+    v.querySelectorAll("[data-ct]").forEach((b) => b.addEventListener("click", () => { d.clientType = b.dataset.ct; redraw(); }));
+    $("#c-hors", v)?.addEventListener("change", (e) => { d.horsEtab = e.target.checked; redraw(); });
+    $("#c-urgent", v)?.addEventListener("change", (e) => { d.urgent = e.target.checked; redraw(); });
+    $("#c-avant", v)?.addEventListener("change", (e) => { d.debutAvant = e.target.checked; persist(); });
+    $("#add-line", v).addEventListener("click", () => { d.lignes.push({ designation: "Nouvelle ligne", qte: 1, unite: "u", pu: 0, aVerifier: false }); drawLines(); drawTotals(); persist(); });
+    $("#c-nom", v).addEventListener("input", (e) => { d.client.nom = e.target.value; persist(); });
+    $("#c-adr", v).addEventListener("input", (e) => { d.client.adresse = e.target.value; persist(); });
+    $("#c-siren", v)?.addEventListener("input", (e) => { d.clientSiren = e.target.value; persist(); });
+    $("#c-obj", v).addEventListener("input", (e) => { d.objet = e.target.value; persist(); });
+    $("#c-debut", v).addEventListener("change", (e) => { d.debut = e.target.value; persist(); });
+    $("#c-duree", v).addEventListener("input", (e) => { d.duree = e.target.value; persist(); });
+    $("#c-tva", v)?.addEventListener("change", (e) => { d.tva = Number(e.target.value); drawTotals(); persist(); });
+    $("#c-remise", v).addEventListener("input", (e) => { d.remise = Math.min(100, Math.max(0, Number(String(e.target.value).replace(",", ".")) || 0)); drawTotals(); persist(); });
+
+    // Modifier en parlant (avec l'IA, quand elle est disponible)
+    if (sample) {
+      $("#ai-edit", v).hidden = false;
+      $("#ai-apply", v).addEventListener("click", async () => {
+        const instr = $("#ai-instr", v).value.trim();
+        const st = $("#ai-status", v);
+        if (!instr) { st.hidden = false; st.className = "error"; st.textContent = "Dites ou écrivez d'abord ce qu'il faut changer."; return; }
+        st.hidden = false; st.className = "thinking"; st.innerHTML = 'Je modifie le devis <span class="dots"><i></i><i></i><i></i></span>';
+        try {
+          const r = await editAI(d, instr);
+          d.client = r.client; d.objet = r.objet; d.lignes = r.lignes;
+          persist(); renderEdit(); toast("Devis modifié");
+        } catch (e) {
+          if (e?.code === "not_granted" || e?.code === "sampling_disabled") { sample = null; $("#ai-edit", v).hidden = true; return; }
+          st.className = "error"; st.textContent = "La modification n'a pas marché. Reformulez ou corrigez la ligne à la main.";
+        }
+      });
+    }
+    persist();
+  }
+  async function editAI(d, instr) {
+    const prompt =
+`Voici un devis (JSON) et une demande de modification d'un professionnel (métier : ${profile.metier}).
+Applique UNIQUEMENT la demande. Garde tout le reste identique.
+Ses prix (HT) à utiliser si une nouvelle prestation est ajoutée : ${JSON.stringify(catalog.map((c) => ({ designation: c.nom, unite: c.unite, prix_ht: c.pu })))}
+Si une prestation ajoutée n'est pas dans ses prix, estime un prix HT réaliste en France et mets "a_verifier": true.
+
+Devis :
+${JSON.stringify({ client: d.client, objet: d.objet, lignes: d.lignes.map((l) => ({ designation: l.designation, qte: l.qte, unite: l.unite, prix_ht: l.pu, a_verifier: !!l.aVerifier })) })}
+
+Demande : """${instr.slice(0, 1000)}"""
+
+Réponds uniquement avec le devis modifié, au même format JSON.`;
+    const r = await sample.json(prompt, { modelTier: "quick", cache: false });
+    if (!r || !Array.isArray(r.lignes)) throw { code: "invalid_json" };
+    return {
+      client: { nom: String(r.client?.nom ?? d.client.nom), adresse: String(r.client?.adresse ?? d.client.adresse) },
+      objet: String(r.objet ?? d.objet),
+      lignes: r.lignes.map((l) => ({ designation: String(l.designation || "Ligne"), qte: Number(l.qte) || 1, unite: String(l.unite || "u"), pu: Number(l.prix_ht) || 0, aVerifier: !!l.a_verifier })),
+    };
+  }
+  function persist() {
+    const i = devisList.findIndex((x) => x.id === current.id);
+    if (i >= 0) devisList[i] = current; else devisList.unshift(current);
+    saveDevis(current);
+  }
+  function removeDevis(d) {
+    if (d.facture) { toast("Un devis facturé ne peut pas être supprimé"); return false; }
+    devisList = devisList.filter((x) => x.id !== d.id);
+    if (mode === "compte") {
+      const path = base + "/devis-" + d.id, w = writers[path];
+      deletedPaths.add(path);
+      if (w) { clearTimeout(w.timer); w.again = false; }
+      const go = () => db.doc(path).delete().catch(() => toast("Suppression non enregistrée"));
+      if (w?.busy) setTimeout(go, 1500); else go();
+    }
+    else save("dv.devis", devisList);
+    return true;
+  }
+  // Numérotation continue, sans trou, par année : D- (devis), F- (factures), A- (avoirs)
+  function nextDoc(prefix, pick) {
+    const y = today().getFullYear();
+    const used = devisList.map(pick).filter((n) => n && n.startsWith(prefix + "-" + y)).map((n) => parseInt(n.slice(7), 10) || 0);
+    return `${prefix}-${y}-${String(Math.max(0, ...used) + 1).padStart(4, "0")}`;
+  }
+  const nextFacture = () => nextDoc("F", (d) => d.facture?.numero);
+  const nextAvoir = () => nextDoc("A", (d) => d.avoir?.numero);
+
+  // ---------- Aperçu (devis, facture ou avoir) + PDF ----------
+  let downloads = null;
+  window.claude?.use?.("downloads").then((x) => { downloads = x; }).catch(() => {});
+  const addDays = (iso, n) => { const x = new Date(iso); x.setDate(x.getDate() + n); return x.toISOString(); };
+  // Identité de l'entreprise (en-tête de chaque document)
+  function sellerLines(p) {
+    return [p.metier, p.adresse, `${p.tel} · ${p.email}`,
+      [p.forme, p.capital ? `au capital de ${p.capital} €` : ""].filter(Boolean).join(" "),
+      `SIRET ${p.siret}${p.immat ? " · " + p.immat : ""}`,
+      p.franchise ? "" : (p.tvaIntra ? `N° TVA intracommunautaire : ${p.tvaIntra}` : "")].filter((s) => String(s).trim());
+  }
+  function clientLines(d) {
+    return [d.client.nom || "—", d.client.adresse, isPro(d) && d.clientSiren ? `SIREN ${d.clientSiren}` : ""].filter(Boolean);
+  }
+  function legalLines(d, kind) {
+    const p = sellerOf(d, kind);
+    const t = totals(d);
+    const out = [];
+    if (p.franchise) out.push("TVA non applicable, article 293 B du CGI.");
+    if (kind === "avoir") {
+      out.push(`Avoir annulant la facture ${d.facture.numero} du ${dateFr(d.facture.date)}.`);
+      return out;
+    }
+    if (kind === "facture") {
+      out.push(`Prestation réalisée le ${dateFr(d.facture.realisation || d.facture.date)}.`);
+      out.push(`Facture à régler avant le ${dateFr(addDays(d.facture.date, 30))}. Pas d'escompte pour paiement anticipé.`);
+      out.push(isPro(d)
+        ? "En cas de retard de paiement : pénalités au taux de 3 fois le taux d'intérêt légal, et indemnité forfaitaire de 40 € pour frais de recouvrement (articles L441-10 et D441-5 du Code de commerce)."
+        : "En cas de retard de paiement, des intérêts au taux légal pourront être appliqués.");
+    } else {
+      if (d.debut || d.duree) out.push(`Début des travaux prévu ${d.debut ? "le " + dateFr(d.debut) : "à convenir"}${d.duree ? ", durée estimée : " + d.duree : ""}.`);
+      out.push("Devis gratuit.");
+      if (Number(p.acompte) > 0) {
+        out.push(retractation(d)
+          ? `Acompte de ${p.acompte} % (${euro(t.acompte)}) payable au plus tôt 7 jours après la signature : aucun paiement ne peut être exigé avant (article L221-10 du Code de la consommation). Solde à la fin des travaux.`
+          : `Acompte de ${p.acompte} % (${euro(t.acompte)}) à la signature, solde à la fin des travaux.`);
+      } else out.push("Paiement à la fin des travaux.");
+      if (retractation(d)) {
+        out.push("Droit de rétractation : vous disposez de 14 jours à compter de la signature pour vous rétracter, sans avoir à vous justifier, en renvoyant le formulaire ci-dessous ou toute autre déclaration claire (articles L221-18 et suivants du Code de la consommation).");
+        if (d.debutAvant) out.push("À votre demande expresse, les travaux peuvent commencer avant la fin de ce délai. Si vous vous rétractez ensuite, vous paierez la part des travaux déjà réalisés (article L221-25 du Code de la consommation).");
+      } else if (offPremises(d) && d.urgent) {
+        out.push("Réparation urgente demandée par le client à son domicile : pas de droit de rétractation pour les travaux strictement nécessaires à l'urgence (article L221-28 du Code de la consommation).");
+      }
+      if (isPro(d)) out.push("En cas de retard de paiement : pénalités au taux de 3 fois le taux d'intérêt légal, et indemnité forfaitaire de 40 € pour frais de recouvrement (articles L441-10 et D441-5 du Code de commerce).");
+      if (!p.franchise && tpl().btp && (Number(d.tva) === 10 || Number(d.tva) === 5.5)) {
+        out.push(`TVA à ${fr(d.tva)} % : en signant, le client atteste que les travaux portent sur un logement achevé depuis plus de 2 ans et remplissent les conditions de ce taux.`);
+      }
+    }
+    if (!isPro(d) && p.mediateur) out.push(`En cas de litige, vous pouvez recourir gratuitement au médiateur de la consommation : ${p.mediateur}.`);
+    if (p.assurance) out.push(`${assuranceLabel()} : ${p.assurance}.`);
+    return out;
+  }
+  function retractForm(d, p) {
+    return [`À l'attention de ${p.nom}, ${p.adresse}, ${p.email} :`,
+      `Je vous notifie par la présente ma rétractation du contrat portant sur la prestation de services ci-dessous (devis n° ${d.numero}).`,
+      "Signé le : ................................    Nom du client : ................................................",
+      "Adresse du client : ...............................................................................................",
+      "Date : ................................    Signature du client :"];
+  }
+  function paperHTML(d, kind = "devis") {
+    const t = totals(d);
+    const p = sellerOf(d, kind);
+    const neg = kind === "avoir" ? -1 : 1;
+    const m = (n) => euro(neg * n);
+    const titles = { devis: `DEVIS <span class="num">${esc(d.numero)}</span>`, facture: `FACTURE <span class="num">${esc(d.facture?.numero)}</span>`, avoir: `AVOIR <span class="num">${esc(d.avoir?.numero)}</span>` };
+    const subs = {
+      devis: `Émis le ${dateFr(d.date)} · valable ${p.validite} jours · Objet : ${esc(d.objet)}`,
+      facture: d.facture && `Date : ${dateFr(d.facture.date)} · Échéance : ${dateFr(addDays(d.facture.date, 30))} · Devis n° ${esc(d.numero)} · Objet : ${esc(d.objet)}`,
+      avoir: d.avoir && `Date : ${dateFr(d.avoir.date)} · Annule la facture n° ${esc(d.facture.numero)}`,
+    };
+    return `
+      <div class="paper" id="paper">
+        <div class="head">
+          <div class="who"><b>${esc(p.nom)}</b>${sellerLines(p).map((s, i) => i === 0 ? `<span class="muted">${esc(s)}</span>` : `<br><span class="${i > 2 ? "muted" : ""}">${esc(s)}</span>`).join("")}</div>
+          <div class="who" style="text-align:right"><span class="muted">${isPro(d) ? "Client professionnel" : "Client"}</span>${clientLines(d).map((s, i) => i === 0 ? `<b>${esc(s)}</b>` : `<span>${esc(s)}</span><br>`).join("")}</div>
+        </div>
+        <div><h3>${titles[kind]}</h3><span class="muted">${subs[kind]}</span></div>
+        <table>
+          <thead><tr><th>Désignation</th><th class="r">Qté</th><th class="r">PU HT</th><th class="r">Total HT</th></tr></thead>
+          <tbody>${d.lignes.map((l) => `<tr><td>${esc(l.designation)}</td><td class="r">${esc(fr(l.qte))} ${esc(l.unite)}</td><td class="r">${euro(l.pu)}</td><td class="r">${m(l.qte * l.pu)}</td></tr>`).join("")}</tbody>
+        </table>
+        <div class="tot">
+          ${t.remise ? `<div><span>Sous-total HT</span><span class="num">${m(t.brut)}</span></div><div><span>Remise ${fr(t.remise)} %</span><span class="num">${m(-(t.brut - t.ht))}</span></div>` : ""}
+          <div><span>Total HT</span><span class="num">${m(t.ht)}</span></div>
+          <div><span>${p.franchise ? "TVA" : "TVA " + fr(t.taux) + " %"}</span><span class="num">${m(t.tva)}</span></div>
+          <div class="big"><span>${kind === "facture" ? "Net à payer" : kind === "avoir" ? "Total de l'avoir" : "Total TTC"}</span><span class="num">${m(t.ttc)}</span></div>
+        </div>
+        <div class="legal">${legalLines(d, kind).map((s) => `<span>${esc(s)}</span>`).join("")}</div>
+        ${kind !== "devis" ? "" : d.signature
+          ? `<div class="sign signed"><span>Bon pour accord, signé le ${dateFr(d.signeLe)} :</span><img alt="Signature du client" src="${d.signature}"></div>`
+          : `<div class="sign">Bon pour accord. Date et signature du client :</div>`}
+        ${kind === "devis" && retractation(d) ? `<div class="retract"><b>Formulaire de rétractation</b><span class="muted">(à compléter et renvoyer uniquement si vous souhaitez vous rétracter)</span>${retractForm(d, p).map((s) => `<span>${esc(s)}</span>`).join("")}</div>` : ""}
+      </div>`;
+  }
+  let previewKind = "devis";
+  function renderPreview(kind) {
+    const d = current;
+    if (kind) previewKind = kind;
+    if ((previewKind === "facture" && !d.facture) || (previewKind === "avoir" && !d.avoir)) previewKind = "devis";
+    if (d.statut === "Brouillon") { d.statut = "Prêt"; persist(); }
+    const w = $("#preview-wrap");
+    w.hidden = false;
+    const names = { devis: "le devis", facture: "la facture", avoir: "l'avoir" };
+    const tabs = ["devis", d.facture && "facture", d.avoir && "avoir"].filter(Boolean);
+    w.innerHTML = `
+      ${tabs.length > 1 ? `<div class="seg" role="tablist">${tabs.map((k) => `<button type="button" role="tab" data-kind="${k}" aria-selected="${previewKind === k}">${k[0].toUpperCase() + k.slice(1)}</button>`).join("")}</div>` : ""}
+      <p class="section-title" style="margin:12px 0 10px">${names[previewKind][0].toUpperCase() + names[previewKind].slice(1)} tel que votre client le recevra</p>
+      ${incompleteNote(d)}
+      ${paperHTML(d, previewKind)}
+      <div class="row-btns" style="margin-top:14px">
+        ${downloads || !window.claude ? `<button class="btn btn-main" type="button" id="pdf">Télécharger ${names[previewKind]} (PDF)</button>` : ""}
+        <button class="btn btn-ghost" type="button" id="msg">Copier le message pour le client</button>
+      </div>
+      ${previewKind === "facture" && isPro(d) ? '<p class="ai-note">Factures entre professionnels : avec la réforme de la facture électronique (2026-2027), elles devront passer par une plateforme agréée. Ce sera géré dans la version finale.</p>' : ""}
+      <div class="card" style="margin-top:14px">
+        <p class="section-title">Suivi du devis</p>
+        <div class="statuts">${["Envoyé", "Accepté", "Refusé"].map((s) => `<button type="button" class="st-btn" data-st="${s}" aria-pressed="${d.statut === s}" ${d.facture ? "disabled" : ""}>${s}</button>`).join("")}</div>
+        ${d.signature || d.facture ? "" : '<button class="btn btn-ghost" type="button" id="sign">Faire signer le client sur ce téléphone</button>'}
+        <div id="sign-pad" hidden></div>
+        ${d.facture ? "" : `<div class="invoice-form"><label class="field">Date de réalisation des travaux<input id="f-real" type="date" value="${esc(dateInput(today().toISOString()))}"></label>
+          <button class="btn btn-ghost" type="button" id="to-invoice">Transformer en facture</button></div>`}
+        ${d.facture && !d.avoir ? '<button class="btn btn-ghost" type="button" id="to-avoir">Annuler la facture par un avoir</button>' : ""}
+        <div class="row-btns">
+          <button class="btn btn-ghost" type="button" id="dup">Dupliquer</button>
+          ${d.facture ? "" : '<button class="btn btn-ghost danger" type="button" id="del">Supprimer</button>'}
+        </div>
+        ${d.facture ? '<p class="lead" style="font-size:.85rem">Un devis facturé ne peut pas être supprimé : les factures doivent être conservées 10 ans.</p>' : ""}
+      </div>
+      <p class="lead" style="font-size:.85rem;margin-top:10px">Dans la version finale : envoi direct par e-mail ou SMS, et signature électronique à distance.</p>`;
+    w.querySelectorAll("[data-kind]").forEach((b) => b.addEventListener("click", () => renderPreview(b.dataset.kind)));
+    $("#pdf", w)?.addEventListener("click", () => downloadPdf(previewKind));
+    $("#msg", w).addEventListener("click", copyMessage);
+    w.querySelectorAll("[data-st]").forEach((b) => b.addEventListener("click", () => {
+      d.statut = b.dataset.st;
+      if (d.statut === "Envoyé" && !d.envoyeLe) d.envoyeLe = today().toISOString();
+      persist(); renderEdit(); renderPreview();
+    }));
+    $("#sign", w)?.addEventListener("click", () => openSignPad($("#sign-pad", w)));
+    $("#to-invoice", w)?.addEventListener("click", () => {
+      const real = $("#f-real", w).value;
+      d.facture = { numero: nextFacture(), date: today().toISOString(), realisation: real || today().toISOString(), vendeur: clone(profile) };
+      if (!d.vendeur) d.vendeur = clone(profile);
+      persist(); toast("Facture " + d.facture.numero + " créée"); renderEdit(); renderPreview("facture");
+    });
+    const av = $("#to-avoir", w);
+    av?.addEventListener("click", () => {
+      if (!av.dataset.confirm) {
+        av.dataset.confirm = "1"; av.classList.add("danger"); av.textContent = "Confirmer : créer l'avoir";
+        setTimeout(() => { if (av.isConnected) { delete av.dataset.confirm; av.classList.remove("danger"); av.textContent = "Annuler la facture par un avoir"; } }, 4000);
+        return;
+      }
+      d.avoir = { numero: nextAvoir(), date: today().toISOString(), vendeur: clone(profile) };
+      persist(); toast("Avoir " + d.avoir.numero + " créé"); renderEdit(); renderPreview("avoir");
+    });
+    $("#dup", w).addEventListener("click", () => {
+      const copy = clone(d);
+      Object.assign(copy, { id: uid(), numero: nextNumber(), date: today().toISOString(), statut: "Brouillon" });
+      ["signature", "signeLe", "facture", "avoir", "envoyeLe", "vendeur"].forEach((k) => delete copy[k]);
+      current = copy; persist(); renderEdit(); window.scrollTo(0, 0); toast("Copie créée : " + copy.numero);
+    });
+    const del = $("#del", w);
+    del?.addEventListener("click", () => {
+      if (del.dataset.confirm) { if (removeDevis(d)) { toast("Devis supprimé"); show("list"); } return; }
+      del.dataset.confirm = "1"; del.textContent = "Confirmer la suppression";
+      setTimeout(() => { if (del.isConnected) { delete del.dataset.confirm; del.textContent = "Supprimer"; } }, 4000);
+    });
+    w.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  // Signature sur l'écran, au doigt (signature électronique simple)
+  function openSignPad(box) {
+    box.hidden = false;
+    box.innerHTML = `<p class="lead" style="font-size:.9rem">Le client relit le devis${retractation(current) ? ", y compris son droit de rétractation," : ""} puis signe avec le doigt dans le cadre :</p>
+      <canvas class="pad" width="600" height="220" aria-label="Zone de signature"></canvas>
+      <div class="row-btns"><button class="btn btn-ghost" type="button" data-clear>Effacer</button><button class="btn btn-main" type="button" data-ok>Valider la signature</button></div>`;
+    const cv = box.querySelector("canvas"), ctx = cv.getContext("2d");
+    ctx.lineWidth = 3.2; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.strokeStyle = "#141a2b";
+    let drawing = false, drawn = false;
+    const pos = (e) => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * cv.width / r.width, (e.clientY - r.top) * cv.height / r.height]; };
+    cv.addEventListener("pointerdown", (e) => { drawing = true; cv.setPointerCapture(e.pointerId); ctx.beginPath(); ctx.moveTo(...pos(e)); });
+    cv.addEventListener("pointermove", (e) => { if (!drawing) return; ctx.lineTo(...pos(e)); ctx.stroke(); drawn = true; });
+    const end = () => { drawing = false; };
+    cv.addEventListener("pointerup", end); cv.addEventListener("pointercancel", end);
+    box.querySelector("[data-clear]").addEventListener("click", () => { ctx.clearRect(0, 0, cv.width, cv.height); drawn = false; });
+    box.querySelector("[data-ok]").addEventListener("click", () => {
+      if (!drawn) { toast("Le client doit d'abord signer dans le cadre"); return; }
+      current.signature = cv.toDataURL("image/png");
+      current.signeLe = today().toISOString();
+      current.vendeur = clone(profile); // le document signé garde les infos de l'entreprise du jour de la signature
+      current.statut = "Accepté";
+      persist(); toast("Devis signé et accepté"); renderEdit(); renderPreview("devis");
+    });
+  }
+
+  // Ce qui manque pour qu'un document soit conforme
+  function missingInfo(d) {
+    const p = profile, miss = [];
+    if (p.exemple) miss.push("les infos de votre entreprise sont encore des exemples");
+    if (!String(p.siret).trim()) miss.push("le SIRET");
+    if (!String(p.adresse).trim()) miss.push("l'adresse");
+    if (!String(p.forme).trim()) miss.push("la forme juridique");
+    if (!String(p.immat).trim()) miss.push("l'immatriculation (RNE, RCS ou RM)");
+    if (!p.franchise && !String(p.tvaIntra).trim()) miss.push("le n° de TVA intracommunautaire");
+    if (!String(p.assurance).trim()) miss.push(tpl().btp ? "l'assurance décennale" : "l'assurance");
+    if (d && !isPro(d) && !String(p.mediateur).trim()) miss.push("le médiateur de la consommation");
+    if (d && isPro(d) && !String(d.clientSiren || "").trim()) miss.push("le SIREN du client");
+    return miss;
+  }
+  function incompleteNote(d) {
+    if (d && (d.facture || d.signature)) return "";
+    const miss = missingInfo(d);
+    return miss.length ? `<p class="example-note">À compléter avant d'envoyer : ${esc(miss.join(", "))}.</p>` : "";
+  }
+  async function copyMessage() {
+    const d = current, t = totals(d);
+    const k = previewKind;
+    const body = {
+      devis: `Veuillez trouver ci-joint le devis ${d.numero} pour : ${d.objet}, d'un montant de ${euro(t.ttc)} TTC. Il est valable ${profile.validite} jours.`,
+      facture: d.facture && `Veuillez trouver ci-joint la facture ${d.facture.numero} pour : ${d.objet}, d'un montant de ${euro(t.ttc)} TTC, à régler avant le ${dateFr(addDays(d.facture.date, 30))}.`,
+      avoir: d.avoir && `Veuillez trouver ci-joint l'avoir ${d.avoir.numero}, qui annule la facture ${d.facture.numero}.`,
+    }[k];
+    const end = { devis: "Pour l'accepter, il vous suffit de le signer avec la mention « Bon pour accord » et de me le renvoyer.", facture: "Merci pour votre confiance.", avoir: "" }[k];
+    const txt = [`Bonjour ${d.client.nom || ""},`.replace(" ,", ","), "", body, end, "", "Bien cordialement,", profile.nom, profile.tel].filter((x) => x !== undefined).join("\n");
+    try { await navigator.clipboard.writeText(txt); toast("Message copié : collez-le dans votre e-mail ou SMS"); }
+    catch { toast("Copie impossible ici"); }
+  }
+  function buildPdf(d, kind = "devis") {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: "mm", format: "a4" });
+    const p = sellerOf(d, kind), t = totals(d);
+    const neg = kind === "avoir" ? -1 : 1;
+    const money = (n) => euro(neg * n).replace(/ | /g, " ");
+    const plain = (n) => euro(n).replace(/ | /g, " ");
+    let y = 16;
+    doc.setFont("helvetica", "bold"); doc.setFontSize(13); doc.text(String(p.nom), 15, y);
+    doc.setFont("helvetica", "normal"); doc.setFontSize(8.5);
+    sellerLines(p).forEach((s, i) => doc.text(String(s).replace(/·/g, "-"), 15, y + 5 + i * 4.2));
+    doc.setFont("helvetica", "bold"); doc.text(isPro(d) ? "Client professionnel" : "Client", 120, y);
+    doc.setFont("helvetica", "normal");
+    doc.text(doc.splitTextToSize(clientLines(d).join("\n"), 75), 120, y + 5);
+    y = 50;
+    const title = { devis: `DEVIS ${d.numero}`, facture: `FACTURE ${d.facture?.numero}`, avoir: `AVOIR ${d.avoir?.numero}` }[kind];
+    const sub = {
+      devis: `Émis le ${dateFr(d.date)} - valable ${p.validite} jours - Objet : ${d.objet}`,
+      facture: d.facture && `Date : ${dateFr(d.facture.date)} - Échéance : ${dateFr(addDays(d.facture.date, 30))} - Devis n° ${d.numero} - Objet : ${d.objet}`,
+      avoir: d.avoir && `Date : ${dateFr(d.avoir.date)} - Annule la facture n° ${d.facture?.numero}`,
+    }[kind];
+    doc.setFont("helvetica", "bold"); doc.setFontSize(18); doc.text(title, 15, y);
+    doc.setFont("helvetica", "normal"); doc.setFontSize(9);
+    doc.text(doc.splitTextToSize(sub, 180), 15, y + 6);
+    y += 16;
+    doc.setFont("helvetica", "bold");
+    doc.text("Désignation", 15, y); doc.text("Qté", 125, y, { align: "right" }); doc.text("PU HT", 158, y, { align: "right" }); doc.text("Total HT", 195, y, { align: "right" });
+    doc.setLineWidth(0.5); doc.line(15, y + 2, 195, y + 2);
+    doc.setFont("helvetica", "normal"); y += 8;
+    for (const l of d.lignes) {
+      const ls = doc.splitTextToSize(l.designation, 95);
+      if (y + ls.length * 4.5 > 255) { doc.addPage(); y = 20; }
+      doc.text(ls, 15, y);
+      doc.text(`${fr(l.qte)} ${l.unite}`, 125, y, { align: "right" });
+      doc.text(plain(l.pu), 158, y, { align: "right" });
+      doc.text(money(l.qte * l.pu), 195, y, { align: "right" });
+      y += ls.length * 4.5 + 2;
+      doc.setLineWidth(0.1); doc.line(15, y - 1.5, 195, y - 1.5); y += 2;
+    }
+    if (y > 215) { doc.addPage(); y = 20; }
+    y += 4;
+    const tot = [];
+    if (t.remise) tot.push(["Sous-total HT", money(t.brut)], [`Remise ${fr(t.remise)} %`, money(-(t.brut - t.ht))]);
+    tot.push(["Total HT", money(t.ht)], [p.franchise ? "TVA" : `TVA ${fr(t.taux)} %`, money(t.tva)]);
+    tot.forEach(([a, b]) => { doc.text(a, 140, y); doc.text(b, 195, y, { align: "right" }); y += 5; });
+    doc.setLineWidth(0.5); doc.line(140, y - 2, 195, y - 2);
+    doc.setFont("helvetica", "bold"); doc.setFontSize(11);
+    doc.text(kind === "facture" ? "Net à payer" : kind === "avoir" ? "Total de l'avoir" : "Total TTC", 140, y + 3); doc.text(money(t.ttc), 195, y + 3, { align: "right" });
+    doc.setFont("helvetica", "normal"); doc.setFontSize(7.8); y += 13;
+    for (const s of legalLines(d, kind)) {
+      const ls = doc.splitTextToSize(s, 180);
+      if (y + ls.length * 3.8 > 285) { doc.addPage(); y = 20; }
+      doc.text(ls, 15, y); y += ls.length * 3.8 + 0.6;
+    }
+    if (kind === "devis") {
+      if (y > 245) { doc.addPage(); y = 20; }
+      y += 3; doc.setLineDashPattern([1, 1], 0); doc.rect(15, y, 90, 30); doc.setLineDashPattern([], 0);
+      doc.text(d.signature ? `Bon pour accord, signé le ${dateFr(d.signeLe)} :` : "Bon pour accord. Date et signature du client :", 18, y + 5);
+      if (d.signature) { try { doc.addImage(d.signature, "PNG", 20, y + 7, 60, 22); } catch {} }
+      if (retractation(d)) {
+        // Formulaire de rétractation : sur une page à part, facile à détacher
+        doc.addPage(); y = 22;
+        doc.setFont("helvetica", "bold"); doc.setFontSize(13); doc.text("Formulaire de rétractation", 15, y);
+        doc.setFont("helvetica", "normal"); doc.setFontSize(9);
+        doc.text("(à compléter et renvoyer uniquement si vous souhaitez vous rétracter du contrat)", 15, y + 6);
+        y += 16;
+        for (const s of retractForm(d, p)) { const ls = doc.splitTextToSize(s, 180); doc.text(ls, 15, y); y += ls.length * 5 + 5; }
+      }
+    }
+    return doc;
+  }
+  window.__buildPdf = (d, kind) => buildPdf(d || current, kind); // utile pour les tests
+  async function downloadPdf(kind = "devis") {
+    if (!window.jspdf) { toast("Le module PDF n'a pas chargé, réessayez"); return; }
+    try {
+      const blob = buildPdf(current, kind).output("blob");
+      const name = { devis: `Devis-${current.numero}`, facture: `Facture-${current.facture?.numero}`, avoir: `Avoir-${current.avoir?.numero}` }[kind] + ".pdf";
+      if (!downloads) { buildPdf(current, kind).save(name); return; }
+      await downloads.save({ filename: name, data: blob });
+    } catch (e) {
+      if (e?.code === "declined") return;
+      toast("Téléchargement impossible ici. Utilisez « Copier le message ».");
+    }
+  }
+
+  // ---------- 3. Mes devis ----------
+  let listFilter = "Tous", listQuery = "";
+  function renderList() {
+    const v = $("#v-list");
+    const filters = ["Tous", "Brouillon", "Envoyé", "Accepté", "Refusé"];
+    v.innerHTML = `<h2 style="font-size:1.8rem">Mes devis</h2>
+      ${devisList.length ? `
+        <input class="search" id="dl-q" type="search" placeholder="Rechercher un client, un numéro…" value="${esc(listQuery)}" autocomplete="off">
+        <div class="filters">${filters.map((f) => `<button type="button" data-f="${f}" aria-pressed="${listFilter === f}">${f}</button>`).join("")}</div>`
+        : '<p class="empty">Aucun devis pour l\'instant.<br>Appuyez sur « Devis » pour créer le premier.</p>'}
+      <div class="list" id="dl"></div>
+      <p class="lead" style="font-size:.85rem">${mode === "compte" ? "Vos devis sont enregistrés dans votre compte." : "Vos devis sont enregistrés sur ce téléphone."}</p>`;
+    const draw = () => {
+      const dl = $("#dl", v); dl.innerHTML = "";
+      const q = key(listQuery);
+      const items = devisList.filter((d) => (listFilter === "Tous" || d.statut === listFilter || (listFilter === "Brouillon" && d.statut === "Prêt"))
+        && (!q || key(`${d.client.nom} ${d.numero} ${d.objet} ${d.facture?.numero || ""} ${d.avoir?.numero || ""}`).includes(q)));
+      items.forEach((d) => dl.append(devisItem(d)));
+      if (devisList.length && !items.length) dl.innerHTML = '<p class="empty">Aucun devis ne correspond.</p>';
+    };
+    $("#dl-q", v)?.addEventListener("input", (e) => { listQuery = e.target.value; draw(); });
+    v.querySelectorAll("[data-f]").forEach((b) => b.addEventListener("click", () => {
+      listFilter = b.dataset.f; v.querySelectorAll("[data-f]").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); draw();
+    }));
+    draw();
+  }
+  function devisItem(d) {
+    const t = totals(d);
+    const b = document.createElement("button"); b.type = "button"; b.className = "item";
+    b.innerHTML = `<div class="item-top"><b>${esc(d.client.nom || "Client sans nom")}</b><span class="num">${euro(t.ttc)}</span></div>
+      <div class="item-top"><span class="lead" style="font-size:.88rem">${esc(d.objet)} · <span class="num">${esc(d.numero)}</span> · ${dateFr(d.date)}${d.avoir ? " · avoir" : d.facture ? " · facturé" : d.signature ? " · signé" : ""}</span>${statutChip(d.statut)}</div>`;
+    b.addEventListener("click", () => { current = d; renderEdit(); show("edit"); });
+    return b;
+  }
+
+  // ---------- 4. Mes prix ----------
+  function renderPrices() {
+    const v = $("#v-prices");
+    v.innerHTML = `<div><h2 style="font-size:1.8rem">Mes prix</h2>
+      <p class="lead" style="margin-top:6px">L'appli utilise ces prix quand vous dictez. Plus votre liste est complète, moins vous corrigez.</p></div>
+      ${profile.exemple ? `<p class="example-note">Prix de départ d'exemple pour : ${esc(tpl().label)}. Remplacez-les par vos vrais prix.</p>` : ""}
+      <div class="card">
+        <div class="price-row price-head"><span>Article</span><span>Unité</span><span style="text-align:right">Prix HT</span><span></span></div>
+        <div class="list" id="pl"></div>
+        <button class="btn btn-ghost" type="button" id="add-price">+ Ajouter un article</button>
+      </div>`;
+    const pl = $("#pl", v);
+    const draw = () => {
+      pl.innerHTML = "";
+      catalog.forEach((c, i) => {
+        const r = document.createElement("div"); r.className = "price-row";
+        r.innerHTML = `<input aria-label="Article" value="${esc(c.nom)}" data-k="nom"><input aria-label="Unité" value="${esc(c.unite)}" data-k="unite"><input aria-label="Prix HT" class="num" inputmode="decimal" value="${esc(c.pu)}" data-k="pu"><button class="icon-btn" type="button" aria-label="Supprimer l'article">${ICON_DEL}</button>`;
+        r.addEventListener("input", (e) => {
+          const k = e.target.dataset.k; if (!k) return;
+          c[k] = k === "pu" ? Number(String(e.target.value).replace(",", ".")) || 0 : e.target.value;
+          saveCatalog();
+        });
+        r.querySelector("button").addEventListener("click", () => { catalog.splice(i, 1); saveCatalog(); draw(); });
+        pl.append(r);
+      });
+    };
+    draw();
+    $("#add-price", v).addEventListener("click", () => { catalog.push({ id: uid(), nom: "Nouvel article", unite: "u", pu: 0, mots: [] }); saveCatalog(); draw(); pl.lastElementChild?.querySelector("input")?.select(); });
+  }
+
+  // ---------- 5. Mon entreprise ----------
+  function renderCompany() {
+    const v = $("#v-company"); const p = profile;
+    const f = (k, label, type = "text") => `<label class="field">${label}<input id="p-${k}" type="${type}" value="${esc(p[k])}" data-k="${k}"></label>`;
+    const account = mode === "compte"
+      ? `<div class="card"><div class="account"><img alt="" src="${esc(me.avatarUrl)}"><div><b>${esc(me.name || "Mon compte")}</b><span>Connecté. Vos prix et vos devis sont dans votre espace privé.</span></div></div>
+          <div class="metier-row"><span class="lead" style="font-size:.85rem">Retrouvez tout sur votre téléphone et votre ordinateur.</span><span id="sync"></span></div></div>`
+      : `<div class="card"><div class="account"><span class="guest-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg></span><div><b>Sur ce téléphone</b><span>Vos devis, vos prix et vos infos sont enregistrés dans ce navigateur, sur cet appareil.</span></div></div></div>`;
+    v.innerHTML = `<div><h2 style="font-size:1.8rem">Mon compte</h2></div>
+      ${account}
+      <p class="section-title">Mon entreprise</p>
+      <p class="lead" style="margin-top:-8px">Ces informations apparaissent sur chaque devis. Certaines sont obligatoires.</p>
+      ${p.exemple ? '<p class="example-note">Entreprise d\'exemple. Remplacez par vos vraies informations.</p>' : ""}
+      <div class="card"><div class="metier-row"><span><span class="section-title">Métier</span><br><b>${esc(tpl().label)}</b></span>
+        <button class="btn btn-ghost" type="button" id="change-metier">Changer de métier</button></div></div>
+      <div class="card">${f("nom", "Nom de l'entreprise")}${f("metier", "Métier")}${f("adresse", "Adresse")}
+        <div class="grid2">${f("tel", "Téléphone", "tel")}${f("email", "E-mail", "email")}</div></div>
+      <div class="card"><p class="section-title">Mentions obligatoires</p>
+        <label class="field">Forme juridique<select id="p-forme">${["Micro-entreprise", "Entreprise individuelle (EI)", "EURL", "SARL", "SASU", "SAS", "Autre"].map((x) => `<option ${p.forme === x ? "selected" : ""}>${x}</option>`).join("")}</select></label>
+        ${/^(EURL|SARL|SASU|SAS)$/.test(p.forme) ? f("capital", "Capital social (€)") : ""}
+        ${f("siret", "SIRET")}
+        ${f("immat", "Immatriculation (RNE, RCS ou RM, avec la ville)")}
+        <label class="check"><input type="checkbox" id="p-franchise" ${p.franchise ? "checked" : ""}> Je ne facture pas la TVA (franchise en base, micro-entreprise)</label>
+        ${p.franchise ? "" : f("tvaIntra", "N° de TVA intracommunautaire")}
+        ${f("assurance", assuranceLabel() + " (assureur, n° de contrat, zone couverte)")}
+        ${f("mediateur", "Médiateur de la consommation (nom et site internet)")}
+        <p class="legal-hint">Obligatoire si vous travaillez pour des particuliers. Votre organisation professionnelle ou la Chambre de métiers peut vous en indiquer un.</p></div>
+      <div class="card"><p class="section-title">Conditions</p>
+        <div class="grid2">${f("validite", "Validité du devis (jours)", "number")}${f("acompte", "Acompte (%)", "number")}</div></div>
+      <div class="card"><p class="section-title">Mentions légales et données</p>
+        <p class="legal-hint">DevisVoix (version bêta) est un outil d'aide à la rédaction : les devis sont préparés automatiquement à partir de votre dictée, et vous restez responsable de leur contenu (prix, taux de TVA, mentions). Vos données (entreprise, prix, clients, devis) servent uniquement à faire fonctionner l'appli ; ${mode === "compte" ? "elles sont enregistrées dans votre espace privé, que personne d'autre ne peut lire." : "elles restent sur cet appareil."} La dictée utilise la reconnaissance vocale de votre téléphone (Apple ou Google) pour transformer votre voix en texte. Vous pouvez supprimer toutes vos données à tout moment.</p>
+        <p class="legal-hint">Pensez à garder une copie de vos factures : la loi impose de les conserver 10 ans.</p>
+        <button class="btn btn-ghost danger" type="button" id="wipe">Supprimer toutes mes données</button></div>`;
+    v.querySelectorAll("input[data-k]").forEach((i) => i.addEventListener("input", () => {
+      p[i.dataset.k] = i.type === "number" ? Number(i.value) || 0 : i.value; p.exemple = false; saveProfile();
+    }));
+    $("#p-franchise", v).addEventListener("change", (e) => { p.franchise = e.target.checked; p.exemple = false; saveProfile(); renderCompany(); });
+    $("#p-forme", v).addEventListener("change", (e) => { p.forme = e.target.value; p.exemple = false; saveProfile(); renderCompany(); });
+    const wipe = $("#wipe", v);
+    wipe.addEventListener("click", async () => {
+      if (!wipe.dataset.confirm) {
+        wipe.dataset.confirm = "1"; wipe.textContent = "Confirmer : tout supprimer définitivement";
+        setTimeout(() => { if (wipe.isConnected) { delete wipe.dataset.confirm; wipe.textContent = "Supprimer toutes mes données"; } }, 5000);
+        return;
+      }
+      wipe.disabled = true;
+      await deleteAllData();
+      toast("Toutes vos données ont été supprimées"); show("pick");
+    });
+    $("#change-metier", v).addEventListener("click", () => show("pick"));
+    $("#sync", v)?.replaceWith(syncChip());
+  }
+
+  async function deleteAllData() {
+    if (mode === "compte") {
+      Object.values(writers).forEach((w) => { clearTimeout(w.timer); w.again = false; });
+      try {
+        const snap = await db.collection(base).get();
+        for (const doc of snap.docs) await db.doc(base + "/" + doc.id).delete().catch(() => {});
+      } catch {}
+    } else {
+      ["dv.profile", "dv.catalog", "dv.devis"].forEach((k) => { try { localStorage.removeItem(k); } catch {} });
+    }
+    profile = clone(DEFAULT_PROFILE); catalog = []; devisList = []; current = null;
+  }
+
+  // Premier lancement : on demande le métier
+  connect().catch(() => { mode = "invite"; }).then(() => {
+    renderExamples();
+    show(profile.metierId ? "home" : "pick");
+  });
+})();
+</script>
+
+</body>
+</html>
