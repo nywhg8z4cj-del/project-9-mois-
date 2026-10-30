@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#060914">
+<meta name="theme-color" content="#f6f8fb">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="DevisVoix">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-180.png">
 <link rel="manifest" href="manifest.webmanifest">
-<style>:root { color-scheme: dark; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); } body { margin: 0; } img { max-width: 100%; } [hidden] { display: none !important; }</style>
+<style>:root { color-scheme: light; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); } body { margin: 0; } img { max-width: 100%; } [hidden] { display: none !important; }</style>
 </head>
 <body>
 <title>DevisVoix</title>
@@ -332,6 +332,125 @@ body[data-input-mode="text"] .voice-only, body[data-input-mode="text"] #rec { di
 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 @media (max-width: 380px) { .line-nums { grid-template-columns: 60px 64px minmax(0, 1fr); } .line-total { grid-column: 1 / -1; padding-bottom: 0; } }
+/* ---------- Habillage clair et moderne ----------
+   Layout : appli de téléphone, fond gris très clair, cartes blanches qui flottent, un seul accent bleu franc,
+   le micro en gros bouton rond. Pas de verre, pas de néon : lisible au soleil sur un chantier. */
+:root {
+  --bg: #eef1f6;
+  --app: #f6f8fb;
+  --card: #ffffff;
+  --glass: #ffffff;
+  --glass-2: #f1f4fa;
+  --ink: #101828;
+  --soft: #5d6a82;
+  --line: #e1e6ef;
+  --accent: #2f5bff;
+  --accent-2: #2f5bff;
+  --accent-deep: #1d3fd6;
+  --grad: #2f5bff;
+  --accent-ink: #ffffff;
+  --accent-soft: #e9eeff;
+  --warn: #b25e00;
+  --warn-soft: #fff4e2;
+  --ok: #10804f;
+  --ok-soft: #e3f6ec;
+  --danger: #d92d43;
+  --danger-soft: #ffeef0;
+  --shadow: 0 1px 2px rgba(16, 24, 40, .05), 0 8px 24px -12px rgba(16, 24, 40, .14);
+  color-scheme: light;
+}
+body { background: var(--bg); color: var(--ink); }
+body::before { background: var(--app); }
+.app { background: var(--app); box-shadow: 0 0 0 1px var(--line); }
+.top { background: rgba(246, 248, 251, .86); -webkit-backdrop-filter: blur(16px) saturate(160%); backdrop-filter: blur(16px) saturate(160%); border-bottom-color: var(--line); }
+.brand-mark { background: var(--accent); color: #fff; box-shadow: 0 6px 14px -6px rgba(47, 91, 255, .7); }
+.chip { background: var(--accent-soft); color: var(--accent-deep); border: 0; }
+.chip.ok { background: var(--ok-soft); color: var(--ok); }
+.chip.warn { background: var(--warn-soft); color: var(--warn); }
+.chip.accent { background: var(--accent-soft); color: var(--accent-deep); }
+.chip.blue { background: #e6f2ff; color: #0b5cad; }
+.section-title { color: var(--soft); }
+h1 { color: var(--ink); }
+
+/* Cartes blanches */
+.card, .dictate, .item, .metier, .stats div { background: var(--card); border: 1px solid var(--line); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: var(--shadow); }
+.card, .dictate { border-radius: 22px; }
+.line { background: var(--app); border-color: var(--line); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none; }
+.line.flag { background: var(--warn-soft); border-color: #f2c37c; }
+.examples button, .filters button, .write-btn, .icon-btn, .btn-ghost, .st-btn, .steps li::before { background: var(--card); border-color: var(--line); color: var(--ink); -webkit-backdrop-filter: none; backdrop-filter: none; }
+.examples button:hover, .filters button:hover { border-color: var(--accent); color: var(--accent-deep); }
+.item:hover, .metier:hover { transform: translateY(-2px); border-color: #c5d1ff; background: var(--card); box-shadow: 0 2px 4px rgba(16, 24, 40, .05), 0 14px 30px -14px rgba(47, 91, 255, .35); }
+.metier[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); box-shadow: 0 0 0 1px var(--accent) inset; }
+.empty { background: var(--card); border-color: #cfd6e3; }
+.item.notice { border-color: #f2c37c; background: var(--warn-soft); }
+.item.notice b { color: var(--warn); }
+
+/* Champs */
+.dictate textarea, .field input, .field select, .field textarea, .line-top input, .line-nums input, .price-row input, .missing input, .search {
+  background: #fff; border: 1px solid #d5dce8; color: var(--ink); }
+.dictate textarea { background: var(--app); }
+.dictate textarea:focus, .field input:focus, .field select:focus, .field textarea:focus, .line-top input:focus, .line-nums input:focus, .price-row input:focus, .missing input:focus, .search:focus {
+  outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px rgba(47, 91, 255, .15); }
+select option { background: #fff; color: var(--ink); }
+::placeholder { color: #98a2b5; }
+.missing input.need { border-color: var(--warn); box-shadow: 0 0 0 3px #ffe2b8; }
+
+/* Boutons */
+.btn-main { background: var(--accent); color: #fff; box-shadow: 0 10px 22px -12px rgba(47, 91, 255, .9); }
+.btn-main:hover { filter: none; }
+@media (hover: hover) { .btn-main:hover { background: var(--accent-deep); } }
+.btn-ghost { color: var(--ink); box-shadow: 0 1px 2px rgba(16, 24, 40, .05); }
+.btn-ghost:hover { border-color: #b9c6ff; }
+.back, .link-btn { color: var(--accent); }
+.btn.danger { color: var(--danger); }
+.btn.danger[data-confirm] { border-color: var(--danger); background: var(--danger-soft); }
+.write-btn { box-shadow: var(--shadow); }
+.write-btn:hover { border-color: #b9c6ff; color: var(--accent-deep); }
+
+/* Le gros bouton « Devis » : rond bleu plein, anneaux qui respirent */
+.devis-btn { background: var(--accent); color: #fff; box-shadow: 0 24px 48px -18px rgba(47, 91, 255, .75), inset 0 2px 0 rgba(255, 255, 255, .22); }
+.devis-btn::before { inset: -26px; background: radial-gradient(circle, rgba(47, 91, 255, .16), transparent 68%); }
+.devis-btn::after { border-color: rgba(47, 91, 255, .45); }
+@media (hover: hover) { .devis-btn:hover { background: var(--accent-deep); } }
+
+/* Sélecteurs */
+.seg { background: #e6eaf2; border: 0; }
+.seg button { color: var(--soft); }
+.seg button[aria-selected="true"], .seg button[aria-checked="true"] { background: #fff; color: var(--ink); box-shadow: 0 1px 3px rgba(16, 24, 40, .12); }
+.filters button { color: var(--soft); }
+.filters button[aria-pressed="true"] { background: var(--ink); color: #fff; border-color: var(--ink); }
+.st-btn[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-deep); }
+.st-btn[data-st="Accepté"][aria-pressed="true"] { border-color: var(--ok); background: var(--ok-soft); color: var(--ok); }
+.st-btn[data-st="Refusé"][aria-pressed="true"] { border-color: var(--danger); background: var(--danger-soft); color: var(--danger); }
+.check input { accent-color: var(--accent); }
+
+/* Micro */
+.rec-btn { background: var(--card); border-color: var(--line); color: var(--ink); box-shadow: var(--shadow); }
+.rec-btn.on { border-color: var(--danger); background: var(--danger-soft); color: var(--danger); }
+.rec-dot, .bars i { background: var(--danger); }
+.rec-status { color: var(--warn); background: var(--warn-soft); }
+.mic-hint .mic { background: var(--accent-soft); color: var(--accent); }
+
+/* Messages */
+.thinking { background: var(--accent-soft); color: var(--accent-deep); }
+.error, .example-note { background: var(--warn-soft); color: var(--warn); border: 1px solid #f6d6a6; }
+.missing { background: var(--warn-soft); border-color: #f2c37c; }
+.missing > b, .missing li span::before { color: var(--warn); }
+.ai-note { border-left-color: var(--accent); }
+.toast { background: var(--ink); color: #fff; box-shadow: 0 10px 30px -10px rgba(16, 24, 40, .5); }
+.guest-mark { background: var(--warn-soft); color: var(--warn); }
+
+/* Totaux et feuille */
+.totals .ttc { border-top-color: var(--line); }
+.totals .ttc .num { background: none; -webkit-background-clip: border-box; background-clip: border-box; color: var(--accent-deep); }
+.paper { border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 2px 4px rgba(16, 24, 40, .04), 0 24px 48px -28px rgba(16, 24, 40, .35); }
+.pad { border: 1px solid #d5dce8; }
+
+/* Barre d'onglets */
+.tabs { background: rgba(255, 255, 255, .97); -webkit-backdrop-filter: blur(16px) saturate(160%); backdrop-filter: blur(16px) saturate(160%); border-top-color: var(--line); }
+.tab { color: #8a94a8; }
+.tab[aria-current="page"] { color: var(--accent); }
+.tab[aria-current="page"] svg { color: var(--accent); filter: none; }
 </style>
 
 <div class="app">
